@@ -8,7 +8,7 @@
  * - Run example 2 first to create a pool
  * - Set TOKEN_ADDRESS environment variable
  *
- * Run: bun examples/3-get-quote.ts
+ * Run: npx tsx examples/3-get-quote.ts
  */
 
 import { NaraSDK, getSwapQuote, BN } from "../index";

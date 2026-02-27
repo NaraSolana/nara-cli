@@ -10,9 +10,9 @@
     "nara-cli": "./dist/nara-cli.js"
   },
   "scripts": {
-    "cli": "bun run bin/nara-cli.ts",
-    "build": "bun build ./bin/nara-cli.ts --outdir ./dist --target node && sed -i '' 's|#!/usr/bin/env bun|#!/usr/bin/env node|' ./dist/nara-cli.js",
-    "prepublishOnly": "bun run build"
+    "cli": "npx tsx bin/nara-cli.ts",
+    "build": "npx esbuild bin/nara-cli.ts --bundle --platform=node --format=esm --outfile=dist/nara-cli.js --external:@coral-xyz/anchor --external:@solana/web3.js --external:@solana/spl-token --external:snarkjs --external:@meteora-ag/* --banner:js='#!/usr/bin/env node'",
+    "prepublishOnly": "npm run build"
   },
   "files": [
     "dist",
@@ -31,7 +31,9 @@
   "license": "MIT",
   "devDependencies": {
     "@types/bn.js": "^5.2.0",
-    "@types/bun": "latest"
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.24.0",
+    "tsx": "^4.19.0"
   },
   "peerDependencies": {
     "typescript": "^5"

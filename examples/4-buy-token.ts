@@ -7,7 +7,7 @@
  * - Run example 2 first to create a pool
  * - Set TOKEN_ADDRESS environment variable
  *
- * Run: bun examples/4-buy-token.ts
+ * Run: npx tsx examples/4-buy-token.ts
  */
 
 import { NaraSDK, buyToken, Keypair } from "../index";

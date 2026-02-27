@@ -13,7 +13,7 @@
  * - Run example 1 first to create a config
  * - Set CONFIG_ADDRESS environment variable
  *
- * Run: bun examples/2-create-pool.ts
+ * Run: npx tsx examples/2-create-pool.ts
  */
 
 import {
@@ -189,7 +189,7 @@ async function createPoolOnly(
   console.log("\n💡 Save this token address to use in the next examples:");
   console.log(`export TOKEN_ADDRESS="${result.baseMint}"`);
   console.log("\n💡 To buy tokens, run example 4:");
-  console.log("bun examples/4-buy-token.ts");
+  console.log("npx tsx examples/4-buy-token.ts");
 }
 
 main().catch((err) => {

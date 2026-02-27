@@ -4,7 +4,7 @@
  * This example demonstrates how to create a Dynamic Bonding Curve configuration.
  * The config defines the curve parameters for token pools.
  *
- * Run: bun examples/1-create-config.ts
+ * Run: npx tsx examples/1-create-config.ts
  */
 
 import { NaraSDK, createConfig, Keypair } from "../index";

@@ -8,7 +8,7 @@
  * - Run example 4 to buy some tokens first
  * - Set TOKEN_ADDRESS environment variable
  *
- * Run: bun examples/5-sell-token.ts
+ * Run: npx tsx examples/5-sell-token.ts
  */
 
 import { NaraSDK, sellToken, Keypair } from "../index";

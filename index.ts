@@ -55,6 +55,22 @@ export {
   type CreateLockerResult,
 } from "./src/migrate";
 
+// Export quest functions and types
+export {
+  getQuestInfo,
+  hasAnswered,
+  generateProof,
+  submitAnswer,
+  submitAnswerViaRelay,
+  parseQuestReward,
+  type QuestInfo,
+  type ZkProof,
+  type ZkProofHex,
+  type SubmitAnswerResult,
+  type SubmitRelayResult,
+  type QuestProveOptions,
+} from "./src/quest";
+
 // Re-export commonly used types from dependencies
 export { PublicKey, Keypair, Transaction } from "@solana/web3.js";
 export { default as BN } from "bn.js";

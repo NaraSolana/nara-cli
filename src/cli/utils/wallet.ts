@@ -31,7 +31,8 @@ export async function loadWallet(walletPath?: string): Promise<Keypair> {
   const path = walletPath || DEFAULT_WALLET_PATH;
 
   try {
-    const file = await Bun.file(path).text();
+    const fs = await import("node:fs/promises");
+    const file = await fs.readFile(path, "utf-8");
     const data = JSON.parse(file);
 
     // Handle both array format [1,2,3,...] and object format

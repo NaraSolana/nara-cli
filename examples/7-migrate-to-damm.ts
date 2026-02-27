@@ -11,7 +11,7 @@
  *
  * Note: DAMM config address is automatically determined from pool configuration
  *
- * Run: bun examples/7-migrate-to-damm.ts
+ * Run: npx tsx examples/7-migrate-to-damm.ts
  */
 
 import { NaraSDK, migrateToDAMMV2, canMigrate, Keypair } from "../index";

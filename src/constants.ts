@@ -8,7 +8,7 @@
  * Default RPC URL for Nara testnet
  */
 export const DEFAULT_RPC_URL =
-  process.env.RPC_URL || "https://testnet.naraso.org/";
+  process.env.RPC_URL || "https://mainnet-api.nara.build/";
 
 /**
  * Default bonding curve config address
@@ -26,4 +26,4 @@ export const DEFAULT_WALLET_PATH =
  * Default quest relay URL
  */
 export const DEFAULT_QUEST_RELAY_URL =
-  process.env.QUEST_RELAY_URL || "https://quest-relay.naraso.org";
+  process.env.QUEST_RELAY_URL || "https://quest-api.nara.build/";

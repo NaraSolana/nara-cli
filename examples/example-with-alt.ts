@@ -3,7 +3,7 @@
  *
  * This example demonstrates how to use Address Lookup Tables to compress transaction size
  *
- * Run: bun examples/example-with-alt.ts
+ * Run: npx tsx examples/example-with-alt.ts
  */
 
 import { NaraSDK, buyToken, Keypair } from "../index";

@@ -3,14 +3,7 @@
  */
 
 import { Command } from "commander";
-import {
-  Connection,
-  Keypair,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-} from "@solana/web3.js";
-import * as anchor from "@coral-xyz/anchor";
-import { Program, AnchorProvider, Wallet } from "@coral-xyz/anchor";
+import { Connection, Keypair } from "@solana/web3.js";
 import { loadWallet, getRpcUrl } from "../utils/wallet";
 import {
   formatOutput,
@@ -20,88 +13,15 @@ import {
   printWarning,
 } from "../utils/output";
 import type { GlobalOptions } from "../types";
-import type { NaraQuest } from "../quest/nara_quest_types";
 import { DEFAULT_QUEST_RELAY_URL } from "../../constants";
-
-// IDL loaded via require for JSON import
-import { createRequire } from "module";
-const _require = createRequire(import.meta.url);
-
-// ─── ZK constants ────────────────────────────────────────────────
-const BN254_FIELD =
-  21888242871839275222246405745257275088696311157297823662689037894645226208583n;
-
-// Circuit files bundled in src/cli/zk/
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const CIRCUIT_WASM_PATH =
-  process.env.QUEST_CIRCUIT_WASM || join(__dirname, "../zk/answer_proof.wasm");
-const ZKEY_PATH =
-  process.env.QUEST_ZKEY || join(__dirname, "../zk/answer_proof_final.zkey");
-
-// Suppress console output from snarkjs WASM during proof generation.
-// Uses singleThread mode to avoid web-worker incompatibility with Bun.
-async function silentProve(snarkjs: any, input: Record<string, string>, wasmPath: string, zkeyPath: string) {
-  const savedLog = console.log;
-  const savedError = console.error;
-  console.log = () => {};
-  console.error = () => {};
-  try {
-    // fullProve(input, wasmFile, zkeyFile, logger, wtnsCalcOptions, proverOptions)
-    return await snarkjs.groth16.fullProve(input, wasmPath, zkeyPath, null, null, { singleThread: true });
-  } finally {
-    console.log = savedLog;
-    console.error = savedError;
-  }
-}
-
-// ─── ZK utilities ────────────────────────────────────────────────
-function toBigEndian32(v: bigint): Buffer {
-  return Buffer.from(v.toString(16).padStart(64, "0"), "hex");
-}
-
-function answerToField(answer: string): bigint {
-  return (
-    BigInt("0x" + Buffer.from(answer, "utf-8").toString("hex")) % BN254_FIELD
-  );
-}
-
-function hashBytesToFieldStr(hashBytes: number[]): string {
-  return BigInt("0x" + Buffer.from(hashBytes).toString("hex")).toString();
-}
-
-function pubkeyToCircuitInputs(pubkey: PublicKey): {
-  lo: string;
-  hi: string;
-} {
-  const bytes = pubkey.toBuffer();
-  return {
-    lo: BigInt("0x" + bytes.subarray(16, 32).toString("hex")).toString(),
-    hi: BigInt("0x" + bytes.subarray(0, 16).toString("hex")).toString(),
-  };
-}
-
-function proofToSolana(proof: any) {
-  const negY = (y: string) => toBigEndian32(BN254_FIELD - BigInt(y));
-  const be = (s: string) => toBigEndian32(BigInt(s));
-  return {
-    proofA: Array.from(
-      Buffer.concat([be(proof.pi_a[0]), negY(proof.pi_a[1])])
-    ),
-    proofB: Array.from(
-      Buffer.concat([
-        be(proof.pi_b[0][1]),
-        be(proof.pi_b[0][0]),
-        be(proof.pi_b[1][1]),
-        be(proof.pi_b[1][0]),
-      ])
-    ),
-    proofC: Array.from(
-      Buffer.concat([be(proof.pi_c[0]), be(proof.pi_c[1])])
-    ),
-  };
-}
+import {
+  getQuestInfo,
+  hasAnswered,
+  generateProof,
+  submitAnswer,
+  submitAnswerViaRelay,
+  parseQuestReward,
+} from "../../quest";
 
 // ─── Anchor error parsing ────────────────────────────────────────
 const QUEST_ERRORS: Record<number, string> = {
@@ -126,39 +46,6 @@ function anchorErrorCode(err: any): string {
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────
-function createProgram(
-  connection: Connection,
-  wallet: Keypair
-): Program<NaraQuest> {
-  const idl = _require("../quest/nara_quest.json");
-  const provider = new AnchorProvider(
-    connection,
-    new Wallet(wallet),
-    { commitment: "confirmed" }
-  );
-  anchor.setProvider(provider);
-  return new Program<NaraQuest>(idl as any, provider);
-}
-
-function getPoolPda(programId: PublicKey): PublicKey {
-  const [pda] = PublicKey.findProgramAddressSync(
-    [Buffer.from("pool")],
-    programId
-  );
-  return pda;
-}
-
-function getWinnerRecordPda(
-  programId: PublicKey,
-  user: PublicKey
-): PublicKey {
-  const [pda] = PublicKey.findProgramAddressSync(
-    [Buffer.from("winner"), user.toBuffer()],
-    programId
-  );
-  return pda;
-}
-
 function formatTimeRemaining(seconds: number): string {
   if (seconds <= 0) return "expired";
   const m = Math.floor(seconds / 60);
@@ -172,27 +59,22 @@ async function handleQuestGet(options: GlobalOptions) {
   const rpcUrl = getRpcUrl(options.rpcUrl);
   const connection = new Connection(rpcUrl, "confirmed");
 
-  // We need a wallet just to create the Anchor provider, but won't sign anything
   let wallet: Keypair;
   try {
     wallet = await loadWallet(options.wallet);
   } catch {
-    // Use a dummy keypair for read-only operations
     wallet = Keypair.generate();
   }
 
-  const program = createProgram(connection, wallet);
-  const poolPda = getPoolPda(program.programId);
-
-  let pool: any;
+  let quest;
   try {
-    pool = await program.account.pool.fetch(poolPda);
+    quest = await getQuestInfo(connection, wallet);
   } catch {
     printError("Failed to fetch quest info. The Quest program may not be initialized.");
     process.exit(1);
   }
 
-  if (!pool.isActive) {
+  if (!quest.active) {
     printWarning("No active quest at the moment");
     if (options.json) {
       formatOutput({ active: false }, true);
@@ -200,43 +82,33 @@ async function handleQuestGet(options: GlobalOptions) {
     return;
   }
 
-  const now = Math.floor(Date.now() / 1000);
-  const deadline = pool.deadline.toNumber();
-  const secsLeft = deadline - now;
-  const rewardPerWinner = pool.rewardPerWinner.toNumber() / LAMPORTS_PER_SOL;
-  const totalReward = pool.rewardAmount.toNumber() / LAMPORTS_PER_SOL;
-  const remainingRewards = Math.max(
-    0,
-    pool.rewardCount - pool.winnerCount
-  );
-
   const data = {
-    round: pool.round.toString(),
-    questionId: pool.questionId.toString(),
-    question: pool.question,
-    rewardPerWinner: `${rewardPerWinner} NSO`,
-    totalReward: `${totalReward} NSO`,
-    rewardSlots: `${pool.winnerCount}/${pool.rewardCount}`,
-    remainingRewardSlots: remainingRewards,
-    deadline: new Date(deadline * 1000).toLocaleString(),
-    timeRemaining: formatTimeRemaining(secsLeft),
-    expired: secsLeft <= 0,
+    round: quest.round,
+    questionId: quest.questionId,
+    question: quest.question,
+    rewardPerWinner: `${quest.rewardPerWinner} NSO`,
+    totalReward: `${quest.totalReward} NSO`,
+    rewardSlots: `${quest.winnerCount}/${quest.rewardCount}`,
+    remainingRewardSlots: quest.remainingSlots,
+    deadline: new Date(quest.deadline * 1000).toLocaleString(),
+    timeRemaining: formatTimeRemaining(quest.timeRemaining),
+    expired: quest.expired,
   };
 
   if (options.json) {
     formatOutput(data, true);
   } else {
     console.log("");
-    console.log(`  Question: ${pool.question}`);
-    console.log(`  Round: #${pool.round.toString()}`);
-    console.log(`  Reward per winner: ${rewardPerWinner} NSO`);
-    console.log(`  Total reward: ${totalReward} NSO`);
+    console.log(`  Question: ${quest.question}`);
+    console.log(`  Round: #${quest.round}`);
+    console.log(`  Reward per winner: ${quest.rewardPerWinner} NSO`);
+    console.log(`  Total reward: ${quest.totalReward} NSO`);
     console.log(
-      `  Reward slots: ${pool.winnerCount}/${pool.rewardCount} (${remainingRewards} remaining)`
+      `  Reward slots: ${quest.winnerCount}/${quest.rewardCount} (${quest.remainingSlots} remaining)`
     );
-    console.log(`  Deadline: ${new Date(deadline * 1000).toLocaleString()}`);
-    if (secsLeft > 0) {
-      console.log(`  Time remaining: ${formatTimeRemaining(secsLeft)}`);
+    console.log(`  Deadline: ${new Date(quest.deadline * 1000).toLocaleString()}`);
+    if (quest.timeRemaining > 0) {
+      console.log(`  Time remaining: ${formatTimeRemaining(quest.timeRemaining)}`);
     } else {
       printWarning("Quest has expired");
     }
@@ -253,68 +125,38 @@ async function handleQuestAnswer(
   const connection = new Connection(rpcUrl, "confirmed");
   const wallet = await loadWallet(options.wallet);
 
-  const program = createProgram(connection, wallet);
-  const poolPda = getPoolPda(program.programId);
-
-  // 1. Fetch pool
-  let pool: any;
+  // 1. Fetch quest info
+  let quest;
   try {
-    pool = await program.account.pool.fetch(poolPda);
+    quest = await getQuestInfo(connection, wallet);
   } catch {
     printError("Failed to fetch quest info. The Quest program may not be initialized.");
     process.exit(1);
   }
 
-  if (!pool.isActive) {
+  if (!quest.active) {
     printError("No active quest at the moment");
     process.exit(1);
   }
 
-  const now = Math.floor(Date.now() / 1000);
-  const deadline = pool.deadline.toNumber();
-  if (now >= deadline) {
+  if (quest.expired) {
     printError("Quest has expired");
     process.exit(1);
   }
 
   // 2. Check if already answered this round
-  const winnerPda = getWinnerRecordPda(program.programId, wallet.publicKey);
-  try {
-    const wr = await program.account.winnerRecord.fetch(winnerPda);
-    if (wr.round.toString() === pool.round.toString()) {
-      printWarning("You have already answered this round");
-      process.exit(0);
-    }
-  } catch {
-    // WinnerRecord doesn't exist yet, first time answering
+  const alreadyAnswered = await hasAnswered(connection, wallet);
+  if (alreadyAnswered) {
+    printWarning("You have already answered this round");
+    process.exit(0);
   }
 
-  // 3. Check if relay mode
-  if (options.relay) {
-    return handleRelayAnswer(answer, pool, wallet, options.relay, options);
-  }
-
-  // 4. Generate ZK proof
+  // 3. Generate ZK proof
   printInfo("Generating ZK proof...");
 
-  const snarkjs = await import("snarkjs");
-  const answerHashFieldStr = hashBytesToFieldStr(
-    Array.from(pool.answerHash)
-  );
-  const { lo, hi } = pubkeyToCircuitInputs(wallet.publicKey);
-
-  let proof: any;
+  let proof;
   try {
-    const result = await silentProve(snarkjs, {
-        answer: answerToField(answer).toString(),
-        answer_hash: answerHashFieldStr,
-        pubkey_lo: lo,
-        pubkey_hi: hi,
-      },
-      CIRCUIT_WASM_PATH,
-      ZKEY_PATH
-    );
-    proof = result.proof;
+    proof = await generateProof(answer, quest.answerHash, wallet.publicKey);
   } catch (err: any) {
     if (err.message?.includes("Assert Failed")) {
       printError("Wrong answer");
@@ -324,145 +166,56 @@ async function handleQuestAnswer(
     process.exit(1);
   }
 
-  const { proofA, proofB, proofC } = proofToSolana(proof);
-
-  // 5. Check deadline again after proof generation
+  // 4. Check deadline again after proof generation
   const nowAfterProof = Math.floor(Date.now() / 1000);
-  if (nowAfterProof >= deadline) {
+  if (nowAfterProof >= quest.deadline) {
     printError("Quest expired during proof generation");
     process.exit(1);
   }
 
-  // 6. Submit answer
-  printInfo("Submitting answer...");
-
-  try {
-    const tx = await program.methods
-      .submitAnswer(proofA as any, proofB as any, proofC as any)
-      .accounts({ user: wallet.publicKey, payer: wallet.publicKey })
-      .signers([wallet])
-      .rpc({ skipPreflight: true });
-
-    printSuccess("Answer submitted!");
-    console.log(`  Transaction: ${tx}`);
-
-    // 7. Parse transaction for reward
-    await parseReward(connection, tx, options);
-  } catch (err: any) {
-    handleSubmitError(err);
-  }
-}
-
-// ─── Relay-based answer submission ───────────────────────────────
-async function handleRelayAnswer(
-  answer: string,
-  pool: any,
-  wallet: Keypair,
-  relayUrl: string,
-  options: GlobalOptions
-) {
-  printInfo("Generating ZK proof...");
-
-  const snarkjs = await import("snarkjs");
-  const answerHashFieldStr = hashBytesToFieldStr(
-    Array.from(pool.answerHash)
-  );
-  const { lo, hi } = pubkeyToCircuitInputs(wallet.publicKey);
-
-  let proof: any;
-  try {
-    const result = await silentProve(snarkjs, {
-        answer: answerToField(answer).toString(),
-        answer_hash: answerHashFieldStr,
-        pubkey_lo: lo,
-        pubkey_hi: hi,
-      },
-      CIRCUIT_WASM_PATH,
-      ZKEY_PATH
-    );
-    proof = result.proof;
-  } catch (err: any) {
-    if (err.message?.includes("Assert Failed")) {
-      printError("Wrong answer");
-    } else {
-      printError(`ZK proof generation failed: ${err.message}`);
+  // 5. Submit answer
+  if (options.relay) {
+    // Relay (gasless) submission
+    printInfo("Submitting answer via relay...");
+    try {
+      const relayResult = await submitAnswerViaRelay(
+        options.relay,
+        wallet.publicKey,
+        proof.hex
+      );
+      printSuccess("Answer submitted via relay!");
+      console.log(`  Transaction: ${relayResult.txHash}`);
+      await handleReward(connection, relayResult.txHash, options);
+    } catch (err: any) {
+      printError(`Relay submission failed: ${err.message}`);
+      process.exit(1);
     }
-    process.exit(1);
+  } else {
+    // Direct on-chain submission
+    printInfo("Submitting answer...");
+    try {
+      const result = await submitAnswer(connection, wallet, proof.solana);
+      printSuccess("Answer submitted!");
+      console.log(`  Transaction: ${result.signature}`);
+      await handleReward(connection, result.signature, options);
+    } catch (err: any) {
+      handleSubmitError(err);
+    }
   }
-
-  // Convert proof to hex for relay
-  const negY = (y: string) => toBigEndian32(BN254_FIELD - BigInt(y));
-  const be = (s: string) => toBigEndian32(BigInt(s));
-  const proofA = Buffer.concat([
-    be(proof.pi_a[0]),
-    negY(proof.pi_a[1]),
-  ]).toString("hex");
-  const proofB = Buffer.concat([
-    be(proof.pi_b[0][1]),
-    be(proof.pi_b[0][0]),
-    be(proof.pi_b[1][1]),
-    be(proof.pi_b[1][0]),
-  ]).toString("hex");
-  const proofC = Buffer.concat([
-    be(proof.pi_c[0]),
-    be(proof.pi_c[1]),
-  ]).toString("hex");
-
-  printInfo("Submitting answer via relay...");
-
-  const res = await fetch(`${relayUrl}/submit-answer`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      user: wallet.publicKey.toBase58(),
-      proofA,
-      proofB,
-      proofC,
-    }),
-  });
-
-  const data = (await res.json()) as any;
-  if (!res.ok) {
-    printError(`Relay submission failed: ${data.error ?? `HTTP ${res.status}`}`);
-    process.exit(1);
-  }
-
-  const txHash = data.txHash as string;
-  printSuccess("Answer submitted via relay!");
-  console.log(`  Transaction: ${txHash}`);
-
-  // Parse reward from relay transaction
-  const rpcUrl = getRpcUrl(options.rpcUrl);
-  const connection = new Connection(rpcUrl, "confirmed");
-  await parseReward(connection, txHash, options);
 }
 
-// ─── Parse reward from transaction log messages ──────────────────
-async function parseReward(
+// ─── Parse reward from transaction ───────────────────────────────
+async function handleReward(
   connection: Connection,
   txSignature: string,
   options: GlobalOptions
 ) {
   printInfo("Fetching transaction details...");
 
-  // Wait a bit for transaction to be confirmed
-  await new Promise((r) => setTimeout(r, 2000));
-
-  let txInfo: any;
-  for (let i = 0; i < 10; i++) {
-    try {
-      txInfo = await connection.getTransaction(txSignature, {
-        commitment: "confirmed",
-        maxSupportedTransactionVersion: 0,
-      });
-      if (txInfo) break;
-    } catch {
-      // retry
-    }
-    await new Promise((r) => setTimeout(r, 1000));
-  }
-
-  if (!txInfo) {
+  let reward;
+  try {
+    reward = await parseQuestReward(connection, txSignature);
+  } catch {
     printWarning("Failed to fetch transaction details. Please check manually later.");
     console.log(
       `  https://solscan.io/tx/${txSignature}?cluster=devnet`
@@ -470,31 +223,16 @@ async function parseReward(
     return;
   }
 
-  // Parse reward from logMessages
-  // Format: "Program log: Answer verified, reward 550758415 lamports (winner 1/10)"
-  let rewardLamports = 0;
-  let winnerInfo = "";
-  const logs: string[] = txInfo.meta?.logMessages ?? [];
-  for (const log of logs) {
-    const m = log.match(/reward (\d+) lamports \(winner (\d+\/\d+)\)/);
-    if (m) {
-      rewardLamports = parseInt(m[1]!);
-      winnerInfo = m[2]!;
-      break;
-    }
-  }
-
-  if (rewardLamports > 0) {
-    const rewardNso = rewardLamports / LAMPORTS_PER_SOL;
-    printSuccess(`Congratulations! Reward received: ${rewardNso} NSO (winner ${winnerInfo})`);
+  if (reward.rewarded) {
+    printSuccess(`Congratulations! Reward received: ${reward.rewardNso} NSO (winner ${reward.winner})`);
     if (options.json) {
       formatOutput(
         {
           signature: txSignature,
           rewarded: true,
-          rewardLamports,
-          rewardNso,
-          winner: winnerInfo,
+          rewardLamports: reward.rewardLamports,
+          rewardNso: reward.rewardNso,
+          winner: reward.winner,
         },
         true
       );

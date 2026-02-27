@@ -7,7 +7,7 @@
  * - Run example 2 first to create a pool
  * - Set TOKEN_ADDRESS environment variable
  *
- * Run: bun examples/6-get-pool-info.ts
+ * Run: npx tsx examples/6-get-pool-info.ts
  */
 
 import { NaraSDK, getPoolInfo, getPoolProgress } from "../index";
