@@ -1,0 +1,53 @@
+{
+  "name": "nara-cli",
+  "version": "0.1.0",
+  "description": "Nara Wallet CLI",
+  "module": "index.ts",
+  "main": "index.ts",
+  "type": "module",
+  "private": false,
+  "bin": {
+    "nara-cli": "./dist/nara-cli.js"
+  },
+  "scripts": {
+    "cli": "bun run bin/nara-cli.ts",
+    "build": "bun build ./bin/nara-cli.ts --outdir ./dist --target node && sed -i '' 's|#!/usr/bin/env bun|#!/usr/bin/env node|' ./dist/nara-cli.js",
+    "prepublishOnly": "bun run build"
+  },
+  "files": [
+    "dist",
+    "src",
+    "index.ts",
+    "bin"
+  ],
+  "keywords": [
+    "solana",
+    "dbc",
+    "bonding-curve",
+    "token",
+    "sdk",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bn.js": "^5.2.0",
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.32.1",
+    "@meteora-ag/cp-amm-sdk": "^1.3.3",
+    "@meteora-ag/dynamic-bonding-curve-sdk": "^1.5.2",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/web3.js": "^1.98.4",
+    "bip39": "^3.1.0",
+    "bn.js": "^5.2.2",
+    "bs58": "^6.0.0",
+    "commander": "^12.1.0",
+    "ed25519-hd-key": "^1.3.0",
+    "snarkjs": "^0.7.6"
+  }
+}
