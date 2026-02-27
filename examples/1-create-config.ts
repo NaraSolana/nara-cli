@@ -8,8 +8,7 @@
  */
 
 import { NaraSDK, createConfig, Keypair } from "../index";
-import { getRpcUrl } from "./utils";
-import { sendAndConfirmTransaction } from "@solana/web3.js";
+import { getRpcUrl, sendAndConfirm } from "./utils";
 import bs58 from "bs58";
 
 async function main() {
@@ -49,11 +48,10 @@ async function main() {
 
   // Sign and send transaction
   console.log("\n📤 Signing and sending transaction...");
-  const signature = await sendAndConfirmTransaction(
+  const signature = await sendAndConfirm(
     sdk.getConnection(),
     result.transaction,
-    [wallet, result.configKeypair],
-    { commitment: "confirmed", skipPreflight: true }
+    [wallet, result.configKeypair]
   );
 
   console.log("\n✅ Config created successfully!");

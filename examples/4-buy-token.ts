@@ -11,11 +11,7 @@
  */
 
 import { NaraSDK, buyToken, Keypair } from "../index";
-import { getRpcUrl } from "./utils";
-import {
-  sendAndConfirmTransaction,
-  VersionedTransaction,
-} from "@solana/web3.js";
+import { getRpcUrl, sendAndConfirm } from "./utils";
 import bs58 from "bs58";
 
 async function main() {
@@ -70,22 +66,11 @@ async function main() {
 
   // Sign and send transaction
   console.log("\n📤 Signing and sending transaction...");
-  let signature: string;
-
-  if (result.transaction instanceof VersionedTransaction) {
-    // Handle VersionedTransaction (when ALT is configured)
-    result.transaction.sign([wallet]);
-    signature = await sdk.getConnection().sendTransaction(result.transaction);
-    await sdk.getConnection().confirmTransaction(signature, "confirmed");
-  } else {
-    // Handle regular Transaction
-    signature = await sendAndConfirmTransaction(
-      sdk.getConnection(),
-      result.transaction,
-      [wallet],
-      { commitment: "confirmed", skipPreflight: true }
-    );
-  }
+  const signature = await sendAndConfirm(
+    sdk.getConnection(),
+    result.transaction,
+    [wallet]
+  );
 
   console.log("\n✅ Tokens purchased successfully!");
   console.log("Transaction:", signature);

@@ -7,11 +7,7 @@
  */
 
 import { NaraSDK, buyToken, Keypair } from "../index";
-import { getRpcUrl } from "./utils";
-import {
-  sendAndConfirmTransaction,
-  VersionedTransaction,
-} from "@solana/web3.js";
+import { getRpcUrl, sendAndConfirm } from "./utils";
 import bs58 from "bs58";
 
 async function main() {
@@ -61,42 +57,14 @@ async function main() {
 
     console.log("✅ Transaction prepared");
 
-    // Note: Starting from v1.x, all transaction functions automatically compile with ALT
-    // If SDK is configured with ALT, result.transaction will automatically be a VersionedTransaction
-    // No need to manually call compileTransactionWithALT()
+    const signature = await sendAndConfirm(
+      sdk.getConnection(),
+      result.transaction,
+      [wallet]
+    );
 
-    if (result.transaction instanceof VersionedTransaction) {
-      console.log("🔧 Using Address Lookup Table to compress transaction");
-
-      // Sign VersionedTransaction
-      result.transaction.sign([wallet]);
-
-      // Send VersionedTransaction
-      const signature = await sdk
-        .getConnection()
-        .sendTransaction(result.transaction, {
-          maxRetries: 3,
-        });
-
-      // Confirm transaction
-      await sdk.getConnection().confirmTransaction(signature, "confirmed");
-
-      console.log("\n✅ Transaction successful!");
-      console.log("Transaction:", signature);
-    } else {
-      // Not using ALT, using regular transaction
-      console.log("📦 Using regular transaction (ALT not configured)");
-
-      const signature = await sendAndConfirmTransaction(
-        sdk.getConnection(),
-        result.transaction,
-        [wallet],
-        { commitment: "confirmed", skipPreflight: true }
-      );
-
-      console.log("\n✅ Transaction successful!");
-      console.log("Transaction:", signature);
-    }
+    console.log("\n✅ Transaction successful!");
+    console.log("Transaction:", signature);
   } catch (err: any) {
     console.error("\n❌ Failed:", err.message || err);
     if (err.logs) {

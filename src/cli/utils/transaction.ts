@@ -3,10 +3,10 @@
  */
 
 import {
-  sendAndConfirmTransaction,
   Transaction,
   VersionedTransaction,
   Keypair,
+  Connection,
 } from "@solana/web3.js";
 import { NaraSDK } from "../../client";
 import { printInfo, printSuccess } from "./output";
@@ -86,34 +86,53 @@ async function signAndSendTransaction(
     let signature: string;
 
     if (transaction instanceof VersionedTransaction) {
-      // Handle VersionedTransaction
       transaction.sign(signers);
-
       printInfo("Sending transaction...");
       signature = await connection.sendTransaction(transaction, {
         maxRetries: 3,
       });
-
-      printInfo("Confirming transaction...");
-      await connection.confirmTransaction(signature, "confirmed");
     } else {
-      // Handle regular Transaction
+      transaction.sign(...signers);
       printInfo("Sending transaction...");
-      signature = await sendAndConfirmTransaction(
-        connection,
-        transaction,
-        signers,
-        {
-          commitment: "confirmed",
-          skipPreflight: true,
-        }
+      signature = await connection.sendRawTransaction(
+        transaction.serialize(),
+        { skipPreflight: true }
       );
     }
+
+    printInfo("Confirming transaction...");
+    await pollConfirmation(connection, signature);
 
     return { signature };
   } catch (error: any) {
     throw new Error(`Transaction failed: ${error.message}`);
   }
+}
+
+/**
+ * Poll for transaction confirmation via HTTP (no WebSocket needed)
+ */
+async function pollConfirmation(
+  connection: Connection,
+  signature: string,
+  timeoutMs = 15000,
+  intervalMs = 1000
+): Promise<void> {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const { value } = await connection.getSignatureStatuses([signature]);
+    const status = value?.[0];
+    if (status) {
+      if (status.err) {
+        throw new Error(`Transaction failed: ${JSON.stringify(status.err)}`);
+      }
+      if (status.confirmationStatus === "confirmed" || status.confirmationStatus === "finalized") {
+        return;
+      }
+    }
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+  throw new Error("Transaction confirmation timeout");
 }
 
 /**

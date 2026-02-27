@@ -22,11 +22,7 @@ import {
   createPoolWithFirstBuy,
   Keypair,
 } from "../index";
-import { getRpcUrl } from "./utils";
-import {
-  sendAndConfirmTransaction,
-  VersionedTransaction,
-} from "@solana/web3.js";
+import { getRpcUrl, sendAndConfirm } from "./utils";
 import bs58 from "bs58";
 
 async function main() {
@@ -104,22 +100,11 @@ async function createPoolWithBuy(
 
   // Sign and send combined transaction (create pool + initial buy)
   console.log("\n📤 Signing and sending transaction (create pool + initial buy)...");
-  let signature: string;
-
-  if (result.createPoolTx instanceof VersionedTransaction) {
-    // Handle VersionedTransaction (when ALT is configured)
-    result.createPoolTx.sign([wallet, result.baseMintKeypair]);
-    signature = await sdk.getConnection().sendTransaction(result.createPoolTx);
-    await sdk.getConnection().confirmTransaction(signature, "confirmed");
-  } else {
-    // Handle regular Transaction
-    signature = await sendAndConfirmTransaction(
-      sdk.getConnection(),
-      result.createPoolTx,
-      [wallet, result.baseMintKeypair],
-      { commitment: "confirmed", skipPreflight: true }
-    );
-  }
+  const signature = await sendAndConfirm(
+    sdk.getConnection(),
+    result.createPoolTx,
+    [wallet, result.baseMintKeypair]
+  );
 
   console.log("\n🎉 Pool created and initial buy completed in one transaction!");
   console.log("Pool Address:", result.poolAddress);
@@ -160,22 +145,11 @@ async function createPoolOnly(
 
   // Sign and send pool creation transaction
   console.log("\n📤 Signing and sending transaction...");
-  let signature: string;
-
-  if (result.transaction instanceof VersionedTransaction) {
-    // Handle VersionedTransaction (when ALT is configured)
-    result.transaction.sign([wallet, result.baseMintKeypair]);
-    signature = await sdk.getConnection().sendTransaction(result.transaction);
-    await sdk.getConnection().confirmTransaction(signature, "confirmed");
-  } else {
-    // Handle regular Transaction
-    signature = await sendAndConfirmTransaction(
-      sdk.getConnection(),
-      result.transaction,
-      [wallet, result.baseMintKeypair],
-      { commitment: "confirmed", skipPreflight: true }
-    );
-  }
+  const signature = await sendAndConfirm(
+    sdk.getConnection(),
+    result.transaction,
+    [wallet, result.baseMintKeypair]
+  );
 
   console.log("\n✅ Pool created successfully!");
   console.log("Pool Address:", result.poolAddress);
