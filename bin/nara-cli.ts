@@ -5,6 +5,10 @@
 import { Command } from "commander";
 import { registerCommands } from "../src/cli/index";
 import { loadWallet } from "../src/cli/utils/wallet";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const { version } = require("../package.json");
 
 // Create program
 const program = new Command();
@@ -13,7 +17,7 @@ const program = new Command();
 program
   .name("naracli")
   .description("CLI for the Nara chain (Solana-compatible)")
-  .version("0.1.0");
+  .version(version);
 
 // Add global options
 program

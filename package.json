@@ -1,17 +1,17 @@
 {
   "name": "naracli",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "CLI for the Nara chain (Solana-compatible)",
   "module": "index.ts",
   "main": "index.ts",
   "type": "module",
   "private": false,
   "bin": {
-    "naracli": "./dist/nara-cli.mjs"
+    "naracli": "./dist/naracli.cjs"
   },
   "scripts": {
     "cli": "node --env-file=.env --import tsx bin/nara-cli.ts",
-    "build": "npx esbuild bin/nara-cli.ts --bundle --platform=node --format=esm --outfile=dist/nara-cli.mjs --packages=external --banner:js='#!/usr/bin/env node\nconst _w=console.warn;console.warn=(...a)=>{if(String(a[0]).includes(\"bigint\"))return;_w(...a)};\ntry{process.loadEnvFile()}catch{}' && mkdir -p dist/zk dist/quest && cp src/cli/zk/answer_proof.wasm src/cli/zk/answer_proof_final.zkey dist/zk/ && cp src/cli/quest/nara_quest.json dist/quest/",
+    "build": "npx esbuild bin/nara-cli.ts --bundle --platform=node --format=esm --outfile=dist/nara-cli.mjs --packages=external && mkdir -p dist/zk dist/quest && cp src/cli/zk/answer_proof.wasm src/cli/zk/answer_proof_final.zkey dist/zk/ && cp src/cli/quest/nara_quest.json dist/quest/ && printf '#!/usr/bin/env node\\nconst _w=console.warn;console.warn=(...a)=>{if(String(a[0]).includes(\"bigint\"))return;_w(...a)};\\ntry{process.loadEnvFile()}catch{}\\nimport(\"./nara-cli.mjs\");\\n' > dist/naracli.cjs",
     "prepublishOnly": "npm run build"
   },
   "files": [
