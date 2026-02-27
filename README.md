@@ -106,11 +106,11 @@ See [examples/](examples/) for complete SDK usage examples.
 
 ```bash
 # Create a new wallet
-naracli wallet create
+npx naracli wallet create
 
 # Or import from mnemonic / private key
-naracli wallet import -m "your twelve word mnemonic phrase ..."
-naracli wallet import -k "your-private-key"
+npx naracli wallet import -m "your twelve word mnemonic phrase ..."
+npx naracli wallet import -k "your-private-key"
 ```
 
 Wallet is saved to `~/.config/nara/id.json` by default.
@@ -126,7 +126,7 @@ migrate   Check migration eligibility and launch to DAMM V2
 quest     On-chain quiz with ZK proof verification
 ```
 
-Run `naracli <command> --help` for details on each command.
+Run `npx naracli <command> --help` for details on each command.
 
 ### Global Options
 
@@ -140,14 +140,14 @@ Run `naracli <command> --help` for details on each command.
 
 ```bash
 # Check balance
-naracli wallet balance
+npx naracli wallet balance
 
 # Buy tokens
-naracli swap buy <TOKEN_ADDRESS> 0.1
+npx naracli swap buy <TOKEN_ADDRESS> 0.1
 
 # Answer a quest
-naracli quest get
-naracli quest answer "your answer"
+npx naracli quest get
+npx naracli quest answer "your answer"
 ```
 
 ## License
