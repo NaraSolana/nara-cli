@@ -710,16 +710,11 @@ async function handleWalletImport(options: {
  * @param options Command options
  */
 async function handleWalletAddress(options: GlobalOptions): Promise<void> {
-  // Load wallet
   const wallet = await loadWallet(options.wallet);
 
-  // Output result
   if (options.json) {
-    const output = {
-      address: wallet.publicKey.toBase58(),
-    };
-    console.log(JSON.stringify(output, null, 2));
+    console.log(JSON.stringify({ address: wallet.publicKey.toBase58() }, null, 2));
   } else {
-    console.log(`\n🔑 Wallet Address: ${wallet.publicKey.toBase58()}\n`);
+    console.log(wallet.publicKey.toBase58());
   }
 }
