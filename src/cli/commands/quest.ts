@@ -69,8 +69,8 @@ async function handleQuestGet(options: GlobalOptions) {
   let quest;
   try {
     quest = await getQuestInfo(connection, wallet);
-  } catch {
-    printError("Failed to fetch quest info. The Quest program may not be initialized.");
+  } catch (err: any) {
+    printError(`Failed to fetch quest info: ${err.message}`);
     process.exit(1);
   }
 
@@ -129,8 +129,8 @@ async function handleQuestAnswer(
   let quest;
   try {
     quest = await getQuestInfo(connection, wallet);
-  } catch {
-    printError("Failed to fetch quest info. The Quest program may not be initialized.");
+  } catch (err: any) {
+    printError(`Failed to fetch quest info: ${err.message}`);
     process.exit(1);
   }
 

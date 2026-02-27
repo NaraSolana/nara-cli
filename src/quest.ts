@@ -20,10 +20,23 @@ const BN254_FIELD =
   21888242871839275222246405745257275088696311157297823662689037894645226208583n;
 
 import { fileURLToPath } from "url";
-import { dirname, join } from "path";
+import { dirname, join, resolve } from "path";
+import { existsSync } from "fs";
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DEFAULT_CIRCUIT_WASM = join(__dirname, "cli/zk/answer_proof.wasm");
-const DEFAULT_ZKEY = join(__dirname, "cli/zk/answer_proof_final.zkey");
+
+function findZkFile(name: string): string {
+  // 1. src/cli/zk/ (dev mode, running from src/)
+  const srcPath = join(__dirname, "cli/zk", name);
+  if (existsSync(srcPath)) return srcPath;
+  // 2. dist/zk/ (published, running from dist/)
+  const distPath = join(__dirname, "zk", name);
+  if (existsSync(distPath)) return distPath;
+  // 3. Fallback to src path (will error at runtime if missing)
+  return srcPath;
+}
+
+const DEFAULT_CIRCUIT_WASM = findZkFile("answer_proof.wasm");
+const DEFAULT_ZKEY = findZkFile("answer_proof_final.zkey");
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -151,7 +164,10 @@ function createProgram(
   connection: Connection,
   wallet: Keypair
 ): Program<NaraQuest> {
-  const idl = _require("./cli/quest/nara_quest.json");
+  const idlPath = existsSync(join(__dirname, "cli/quest/nara_quest.json"))
+    ? "./cli/quest/nara_quest.json"
+    : "./quest/nara_quest.json";
+  const idl = _require(idlPath);
   const provider = new AnchorProvider(
     connection,
     new Wallet(wallet),

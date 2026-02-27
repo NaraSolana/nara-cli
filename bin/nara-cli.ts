@@ -1,4 +1,3 @@
-#!/usr/bin/env tsx
 /**
  * Nara CLI - Command-line interface for the Nara chain
  */

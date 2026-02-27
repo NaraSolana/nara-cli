@@ -8,10 +8,10 @@ description: "Nara chain CLI and SDK agent. Use when the user mentions: Nara, NS
 CLI for the Nara chain (Solana-compatible). Native coin is **NSO** (not SOL).
 
 ```
-npx nara-cli <command> [options]
+npx naracli <command> [options]
 ```
 
-> Development: `npx tsx bin/nara-cli.ts <command> [options]`
+> Development: `npx tsx bin/nara-cli.ts <command> [options]` (same options)
 
 ## Global Options
 
@@ -81,10 +81,10 @@ migrate create-locker <token-address> [-e]          # Create locker (before migr
 
 When the user asks to auto-answer quests or run the quest agent, follow this loop:
 
-1. **Fetch question**: `npx nara-cli quest get --json`
+1. **Fetch question**: `npx naracli quest get --json`
 2. **Check**: If expired or no active quest, wait 15s and retry
 3. **Solve**: Analyze the question and compute the answer. See [references/quest-questions.md](references/quest-questions.md) for question types and solving strategies
-4. **Submit immediately**: `npx nara-cli quest answer "<answer>"`
+4. **Submit immediately**: `npx naracli quest answer "<answer>"`
 5. **Speed matters** - rewards are first-come-first-served, minimize delay between fetch and submit
 6. **Loop**: If user requests multiple rounds, go back to step 1 after submission
 

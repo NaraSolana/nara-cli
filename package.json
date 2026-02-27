@@ -1,17 +1,17 @@
 {
-  "name": "nara-cli",
-  "version": "0.1.0",
+  "name": "naracli",
+  "version": "1.0.12",
   "description": "CLI for the Nara chain (Solana-compatible)",
   "module": "index.ts",
   "main": "index.ts",
   "type": "module",
   "private": false,
   "bin": {
-    "nara-cli": "./dist/nara-cli.js"
+    "naracli": "./dist/nara-cli.mjs"
   },
   "scripts": {
     "cli": "npx tsx bin/nara-cli.ts",
-    "build": "npx esbuild bin/nara-cli.ts --bundle --platform=node --format=esm --outfile=dist/nara-cli.js --external:@coral-xyz/anchor --external:@solana/web3.js --external:@solana/spl-token --external:snarkjs --external:@meteora-ag/* --banner:js='#!/usr/bin/env node'",
+    "build": "npx esbuild bin/nara-cli.ts --bundle --platform=node --format=esm --outfile=dist/nara-cli.mjs --packages=external --banner:js='#!/usr/bin/env node' && mkdir -p dist/zk dist/quest && cp src/cli/zk/answer_proof.wasm src/cli/zk/answer_proof_final.zkey dist/zk/ && cp src/cli/quest/nara_quest.json dist/quest/",
     "prepublishOnly": "npm run build"
   },
   "files": [

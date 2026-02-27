@@ -38,13 +38,13 @@ Circuit files: `answer_proof.wasm` + `answer_proof_final.zkey` (BN254 curve).
 ## Installation
 
 ```bash
-npm install nara-cli
+npm install naracli
 ```
 
 ## SDK Usage
 
 ```typescript
-import { NaraSDK } from "nara-cli";
+import { NaraSDK } from "naracli";
 
 const sdk = new NaraSDK({
   rpcUrl: "https://mainnet-api.nara.build/",
@@ -63,7 +63,7 @@ import {
   submitAnswerViaRelay,
   parseQuestReward,
   Keypair,
-} from "nara-cli";
+} from "naracli";
 import { Connection } from "@solana/web3.js";
 
 const connection = new Connection("https://mainnet-api.nara.build/", "confirmed");
@@ -106,11 +106,11 @@ See [examples/](examples/) for complete SDK usage examples.
 
 ```bash
 # Create a new wallet
-nara-cli wallet create
+naracli wallet create
 
 # Or import from mnemonic / private key
-nara-cli wallet import -m "your twelve word mnemonic phrase ..."
-nara-cli wallet import -k "your-private-key"
+naracli wallet import -m "your twelve word mnemonic phrase ..."
+naracli wallet import -k "your-private-key"
 ```
 
 Wallet is saved to `~/.config/nara/id.json` by default.
@@ -126,7 +126,7 @@ migrate   Check migration eligibility and launch to DAMM V2
 quest     On-chain quiz with ZK proof verification
 ```
 
-Run `nara-cli <command> --help` for details on each command.
+Run `naracli <command> --help` for details on each command.
 
 ### Global Options
 
@@ -140,14 +140,14 @@ Run `nara-cli <command> --help` for details on each command.
 
 ```bash
 # Check balance
-nara-cli wallet balance
+naracli wallet balance
 
 # Buy tokens
-nara-cli swap buy <TOKEN_ADDRESS> 0.1
+naracli swap buy <TOKEN_ADDRESS> 0.1
 
 # Answer a quest
-nara-cli quest get
-nara-cli quest answer "your answer"
+naracli quest get
+naracli quest answer "your answer"
 ```
 
 ## License
