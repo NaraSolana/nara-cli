@@ -10,7 +10,7 @@
 export { NaraSDK, type NaraSDKConfig } from "./src/client";
 
 // Export constants
-export { DEFAULT_RPC_URL } from "./src/constants";
+export { DEFAULT_RPC_URL, DEFAULT_QUEST_PROGRAM_ID } from "./src/constants";
 
 // Export config functions and types
 export {
@@ -68,7 +68,7 @@ export {
   type ZkProofHex,
   type SubmitAnswerResult,
   type SubmitRelayResult,
-  type QuestProveOptions,
+  type QuestOptions,
 } from "./src/quest";
 
 // Re-export commonly used types from dependencies

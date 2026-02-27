@@ -11,6 +11,7 @@ import {
 import * as anchor from "@coral-xyz/anchor";
 import { Program, AnchorProvider, Wallet } from "@coral-xyz/anchor";
 import type { NaraQuest } from "./cli/quest/nara_quest_types";
+import { DEFAULT_QUEST_PROGRAM_ID } from "./constants";
 
 import { createRequire } from "module";
 const _require = createRequire(import.meta.url);
@@ -76,7 +77,8 @@ export interface SubmitRelayResult {
   txHash: string;
 }
 
-export interface QuestProveOptions {
+export interface QuestOptions {
+  programId?: string;
   circuitWasmPath?: string;
   zkeyPath?: string;
 }
@@ -162,19 +164,22 @@ async function silentProve(snarkjs: any, input: Record<string, string>, wasmPath
 
 function createProgram(
   connection: Connection,
-  wallet: Keypair
+  wallet: Keypair,
+  programId?: string
 ): Program<NaraQuest> {
   const idlPath = existsSync(join(__dirname, "cli/quest/nara_quest.json"))
     ? "./cli/quest/nara_quest.json"
     : "./quest/nara_quest.json";
   const idl = _require(idlPath);
+  const pid = programId ?? DEFAULT_QUEST_PROGRAM_ID;
+  const idlWithPid = { ...idl, address: pid };
   const provider = new AnchorProvider(
     connection,
     new Wallet(wallet),
     { commitment: "confirmed" }
   );
   anchor.setProvider(provider);
-  return new Program<NaraQuest>(idl as any, provider);
+  return new Program<NaraQuest>(idlWithPid as any, provider);
 }
 
 function getPoolPda(programId: PublicKey): PublicKey {
@@ -203,10 +208,11 @@ function getWinnerRecordPda(
  */
 export async function getQuestInfo(
   connection: Connection,
-  wallet?: Keypair
+  wallet?: Keypair,
+  options?: QuestOptions
 ): Promise<QuestInfo> {
   const kp = wallet ?? Keypair.generate();
-  const program = createProgram(connection, kp);
+  const program = createProgram(connection, kp, options?.programId);
   const poolPda = getPoolPda(program.programId);
   const pool = await program.account.pool.fetch(poolPda);
 
@@ -236,10 +242,11 @@ export async function getQuestInfo(
  */
 export async function hasAnswered(
   connection: Connection,
-  wallet: Keypair
+  wallet: Keypair,
+  options?: QuestOptions
 ): Promise<boolean> {
-  const program = createProgram(connection, wallet);
-  const quest = await getQuestInfo(connection, wallet);
+  const program = createProgram(connection, wallet, options?.programId);
+  const quest = await getQuestInfo(connection, wallet, options);
   const winnerPda = getWinnerRecordPda(program.programId, wallet.publicKey);
   try {
     const wr = await program.account.winnerRecord.fetch(winnerPda);
@@ -257,7 +264,7 @@ export async function generateProof(
   answer: string,
   answerHash: number[],
   userPubkey: PublicKey,
-  options?: QuestProveOptions
+  options?: QuestOptions
 ): Promise<{ solana: ZkProof; hex: ZkProofHex }> {
   const wasmPath = options?.circuitWasmPath ?? process.env.QUEST_CIRCUIT_WASM ?? DEFAULT_CIRCUIT_WASM;
   const zkeyPath = options?.zkeyPath ?? process.env.QUEST_ZKEY ?? DEFAULT_ZKEY;
@@ -290,9 +297,10 @@ export async function generateProof(
 export async function submitAnswer(
   connection: Connection,
   wallet: Keypair,
-  proof: ZkProof
+  proof: ZkProof,
+  options?: QuestOptions
 ): Promise<SubmitAnswerResult> {
-  const program = createProgram(connection, wallet);
+  const program = createProgram(connection, wallet, options?.programId);
   const signature = await program.methods
     .submitAnswer(proof.proofA as any, proof.proofB as any, proof.proofC as any)
     .accounts({ user: wallet.publicKey, payer: wallet.publicKey })

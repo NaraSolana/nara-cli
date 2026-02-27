@@ -27,3 +27,9 @@ export const DEFAULT_WALLET_PATH =
  */
 export const DEFAULT_QUEST_RELAY_URL =
   process.env.QUEST_RELAY_URL || "https://quest-api.nara.build/";
+
+/**
+ * Quest program ID
+ */
+export const DEFAULT_QUEST_PROGRAM_ID =
+  process.env.QUEST_PROGRAM_ID || "Quest11111111111111111111111111111111111111";
