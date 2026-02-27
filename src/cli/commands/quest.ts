@@ -40,6 +40,20 @@ const CIRCUIT_WASM_PATH =
 const ZKEY_PATH =
   process.env.QUEST_ZKEY || join(__dirname, "../zk/answer_proof_final.zkey");
 
+// Suppress console output from snarkjs WASM during proof generation
+async function silentProve(snarkjs: any, input: Record<string, string>, wasmPath: string, zkeyPath: string) {
+  const savedLog = console.log;
+  const savedError = console.error;
+  console.log = () => {};
+  console.error = () => {};
+  try {
+    return await snarkjs.groth16.fullProve(input, wasmPath, zkeyPath);
+  } finally {
+    console.log = savedLog;
+    console.error = savedError;
+  }
+}
+
 // ─── ZK utilities ────────────────────────────────────────────────
 function toBigEndian32(v: bigint): Buffer {
   return Buffer.from(v.toString(16).padStart(64, "0"), "hex");
@@ -289,8 +303,7 @@ async function handleQuestAnswer(
 
   let proof: any;
   try {
-    const result = await snarkjs.groth16.fullProve(
-      {
+    const result = await silentProve(snarkjs, {
         answer: answerToField(answer).toString(),
         answer_hash: answerHashFieldStr,
         pubkey_lo: lo,
@@ -301,7 +314,11 @@ async function handleQuestAnswer(
     );
     proof = result.proof;
   } catch (err: any) {
-    printError(`ZK proof generation failed: ${err.message}`);
+    if (err.message?.includes("Assert Failed")) {
+      printError("Wrong answer");
+    } else {
+      printError(`ZK proof generation failed: ${err.message}`);
+    }
     process.exit(1);
   }
 
@@ -352,8 +369,7 @@ async function handleRelayAnswer(
 
   let proof: any;
   try {
-    const result = await snarkjs.groth16.fullProve(
-      {
+    const result = await silentProve(snarkjs, {
         answer: answerToField(answer).toString(),
         answer_hash: answerHashFieldStr,
         pubkey_lo: lo,
@@ -364,7 +380,11 @@ async function handleRelayAnswer(
     );
     proof = result.proof;
   } catch (err: any) {
-    printError(`ZK proof generation failed: ${err.message}`);
+    if (err.message?.includes("Assert Failed")) {
+      printError("Wrong answer");
+    } else {
+      printError(`ZK proof generation failed: ${err.message}`);
+    }
     process.exit(1);
   }
 
