@@ -40,14 +40,16 @@ const CIRCUIT_WASM_PATH =
 const ZKEY_PATH =
   process.env.QUEST_ZKEY || join(__dirname, "../zk/answer_proof_final.zkey");
 
-// Suppress console output from snarkjs WASM during proof generation
+// Suppress console output from snarkjs WASM during proof generation.
+// Uses singleThread mode to avoid web-worker incompatibility with Bun.
 async function silentProve(snarkjs: any, input: Record<string, string>, wasmPath: string, zkeyPath: string) {
   const savedLog = console.log;
   const savedError = console.error;
   console.log = () => {};
   console.error = () => {};
   try {
-    return await snarkjs.groth16.fullProve(input, wasmPath, zkeyPath);
+    // fullProve(input, wasmFile, zkeyFile, logger, wtnsCalcOptions, proverOptions)
+    return await snarkjs.groth16.fullProve(input, wasmPath, zkeyPath, null, null, { singleThread: true });
   } finally {
     console.log = savedLog;
     console.error = savedError;
@@ -345,7 +347,7 @@ async function handleQuestAnswer(
     console.log(`  Transaction: ${tx}`);
 
     // 7. Parse transaction for reward
-    await parseReward(connection, tx, wallet.publicKey, options);
+    await parseReward(connection, tx, options);
   } catch (err: any) {
     handleSubmitError(err);
   }
@@ -432,14 +434,13 @@ async function handleRelayAnswer(
   // Parse reward from relay transaction
   const rpcUrl = getRpcUrl(options.rpcUrl);
   const connection = new Connection(rpcUrl, "confirmed");
-  await parseReward(connection, txHash, wallet.publicKey, options);
+  await parseReward(connection, txHash, options);
 }
 
-// ─── Parse reward from transaction inner instructions ────────────
+// ─── Parse reward from transaction log messages ──────────────────
 async function parseReward(
   connection: Connection,
   txSignature: string,
-  userPubkey: PublicKey,
   options: GlobalOptions
 ) {
   printInfo("Fetching transaction details...");
@@ -448,7 +449,7 @@ async function parseReward(
   await new Promise((r) => setTimeout(r, 2000));
 
   let txInfo: any;
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 10; i++) {
     try {
       txInfo = await connection.getTransaction(txSignature, {
         commitment: "confirmed",
@@ -469,56 +470,31 @@ async function parseReward(
     return;
   }
 
-  // Look for SOL transfer to user in inner instructions
-  const userAddress = userPubkey.toBase58();
+  // Parse reward from logMessages
+  // Format: "Program log: Answer verified, reward 550758415 lamports (winner 1/10)"
   let rewardLamports = 0;
-
-  const meta = txInfo.meta;
-  if (meta?.innerInstructions) {
-    for (const inner of meta.innerInstructions) {
-      for (const ix of inner.instructions) {
-        // System program transfer instruction
-        // programIdIndex points to system program (11111111111111111111111111111111)
-        const accountKeys =
-          txInfo.transaction.message.staticAccountKeys ??
-          txInfo.transaction.message.accountKeys;
-
-        const programId = accountKeys[ix.programIdIndex]?.toBase58?.() ??
-          accountKeys[ix.programIdIndex]?.toString?.() ??
-          accountKeys[ix.programIdIndex];
-
-        if (programId === "11111111111111111111111111111111") {
-          // System program transfer: data contains transfer instruction
-          // Instruction type 2 = Transfer, followed by u64 lamports (little-endian)
-          const data = Buffer.from(ix.data, "base64");
-          if (data.length >= 12 && data.readUInt32LE(0) === 2) {
-            // Transfer instruction
-            const lamports = Number(data.readBigUInt64LE(4));
-            const destIndex = ix.accounts[1];
-            const destKey =
-              accountKeys[destIndex]?.toBase58?.() ??
-              accountKeys[destIndex]?.toString?.() ??
-              accountKeys[destIndex];
-
-            if (destKey === userAddress) {
-              rewardLamports += lamports;
-            }
-          }
-        }
-      }
+  let winnerInfo = "";
+  const logs: string[] = txInfo.meta?.logMessages ?? [];
+  for (const log of logs) {
+    const m = log.match(/reward (\d+) lamports \(winner (\d+\/\d+)\)/);
+    if (m) {
+      rewardLamports = parseInt(m[1]!);
+      winnerInfo = m[2]!;
+      break;
     }
   }
 
   if (rewardLamports > 0) {
-    const rewardSol = rewardLamports / LAMPORTS_PER_SOL;
-    printSuccess(`Congratulations! Reward received: ${rewardSol} NSO`);
+    const rewardNso = rewardLamports / LAMPORTS_PER_SOL;
+    printSuccess(`Congratulations! Reward received: ${rewardNso} NSO (winner ${winnerInfo})`);
     if (options.json) {
       formatOutput(
         {
           signature: txSignature,
           rewarded: true,
           rewardLamports,
-          rewardSol,
+          rewardNso,
+          winner: winnerInfo,
         },
         true
       );
