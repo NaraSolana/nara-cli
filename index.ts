@@ -1,8 +1,8 @@
 /**
- * Nara DBC SDK - Dynamic Bonding Curve token launcher for Nara (Solana-compatible)
+ * Nara CLI & SDK - CLI and SDK for the Nara chain (Solana-compatible)
  *
- * This SDK provides functions to interact with the Dynamic Bonding Curve protocol
- * on Nara. All transaction-related functions return unsigned transactions that
+ * This SDK provides functions to interact with the Nara chain.
+ * All transaction-related functions return unsigned transactions that
  * must be signed and sent by the caller.
  */
 

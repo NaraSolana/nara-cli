@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Nara CLI - Command-line interface for Nara DBC SDK
+ * Nara CLI - Command-line interface for the Nara chain
  */
 
 import { Command } from "commander";
@@ -12,7 +12,7 @@ const program = new Command();
 // Set program metadata
 program
   .name("nara-cli")
-  .description("Nara DBC SDK - Dynamic Bonding Curve token launcher for Nara (Solana-compatible)")
+  .description("CLI for the Nara chain (Solana-compatible)")
   .version("0.1.0");
 
 // Add global options

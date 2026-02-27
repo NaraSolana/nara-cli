@@ -27,19 +27,18 @@ import { DEFAULT_QUEST_RELAY_URL } from "../../constants";
 import { createRequire } from "module";
 const _require = createRequire(import.meta.url);
 
-const QUEST_PROGRAM_ID = new PublicKey(
-  "EXPLAHaMHLK9p7w5jVqEVY671NkkCKSHTNhhyUrPAboZ"
-);
-
 // ─── ZK constants ────────────────────────────────────────────────
 const BN254_FIELD =
   21888242871839275222246405745257275088696311157297823662689037894645226208583n;
 
-// Circuit files path (relative to nara-quest project)
+// Circuit files bundled in src/cli/zk/
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const CIRCUIT_WASM_PATH =
-  process.env.QUEST_CIRCUIT_WASM || "";
+  process.env.QUEST_CIRCUIT_WASM || join(__dirname, "../zk/answer_proof.wasm");
 const ZKEY_PATH =
-  process.env.QUEST_ZKEY || "";
+  process.env.QUEST_ZKEY || join(__dirname, "../zk/answer_proof_final.zkey");
 
 // ─── ZK utilities ────────────────────────────────────────────────
 function toBigEndian32(v: bigint): Buffer {
@@ -145,11 +144,11 @@ function getWinnerRecordPda(
 }
 
 function formatTimeRemaining(seconds: number): string {
-  if (seconds <= 0) return "已过期";
+  if (seconds <= 0) return "expired";
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
-  if (m > 0) return `${m}分${s}秒`;
-  return `${s}秒`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
 }
 
 // ─── Command: quest get ──────────────────────────────────────────
@@ -173,12 +172,12 @@ async function handleQuestGet(options: GlobalOptions) {
   try {
     pool = await program.account.pool.fetch(poolPda);
   } catch {
-    printError("无法获取题目信息，Quest 程序可能未初始化");
+    printError("Failed to fetch quest info. The Quest program may not be initialized.");
     process.exit(1);
   }
 
   if (!pool.isActive) {
-    printWarning("当前没有活跃的题目");
+    printWarning("No active quest at the moment");
     if (options.json) {
       formatOutput({ active: false }, true);
     }
@@ -212,18 +211,18 @@ async function handleQuestGet(options: GlobalOptions) {
     formatOutput(data, true);
   } else {
     console.log("");
-    console.log(`  题目: ${pool.question}`);
-    console.log(`  轮次: #${pool.round.toString()}`);
-    console.log(`  每人奖励: ${rewardPerWinner} SOL`);
-    console.log(`  奖励总额: ${totalReward} SOL`);
+    console.log(`  Question: ${pool.question}`);
+    console.log(`  Round: #${pool.round.toString()}`);
+    console.log(`  Reward per winner: ${rewardPerWinner} SOL`);
+    console.log(`  Total reward: ${totalReward} SOL`);
     console.log(
-      `  奖励名额: ${pool.winnerCount}/${pool.rewardCount} (剩余 ${remainingRewards} 个)`
+      `  Reward slots: ${pool.winnerCount}/${pool.rewardCount} (${remainingRewards} remaining)`
     );
-    console.log(`  截止时间: ${new Date(deadline * 1000).toLocaleString()}`);
+    console.log(`  Deadline: ${new Date(deadline * 1000).toLocaleString()}`);
     if (secsLeft > 0) {
-      console.log(`  剩余时间: ${formatTimeRemaining(secsLeft)}`);
+      console.log(`  Time remaining: ${formatTimeRemaining(secsLeft)}`);
     } else {
-      printWarning("题目已过期");
+      printWarning("Quest has expired");
     }
     console.log("");
   }
@@ -246,19 +245,19 @@ async function handleQuestAnswer(
   try {
     pool = await program.account.pool.fetch(poolPda);
   } catch {
-    printError("无法获取题目信息，Quest 程序可能未初始化");
+    printError("Failed to fetch quest info. The Quest program may not be initialized.");
     process.exit(1);
   }
 
   if (!pool.isActive) {
-    printError("当前没有活跃的题目");
+    printError("No active quest at the moment");
     process.exit(1);
   }
 
   const now = Math.floor(Date.now() / 1000);
   const deadline = pool.deadline.toNumber();
   if (now >= deadline) {
-    printError("题目已过期");
+    printError("Quest has expired");
     process.exit(1);
   }
 
@@ -267,7 +266,7 @@ async function handleQuestAnswer(
   try {
     const wr = await program.account.winnerRecord.fetch(winnerPda);
     if (wr.round.toString() === pool.round.toString()) {
-      printWarning("你已经回答过本轮题目了");
+      printWarning("You have already answered this round");
       process.exit(0);
     }
   } catch {
@@ -280,19 +279,7 @@ async function handleQuestAnswer(
   }
 
   // 4. Generate ZK proof
-  const circuitWasm = CIRCUIT_WASM_PATH;
-  const zkeyPath = ZKEY_PATH;
-
-  if (!circuitWasm || !zkeyPath) {
-    printError(
-      "未配置 ZK 证明文件路径。请设置环境变量:\n" +
-        "  QUEST_CIRCUIT_WASM=<path to answer_proof.wasm>\n" +
-        "  QUEST_ZKEY=<path to answer_proof_final.zkey>"
-    );
-    process.exit(1);
-  }
-
-  printInfo("正在生成 ZK 证明...");
+  printInfo("Generating ZK proof...");
 
   const snarkjs = await import("snarkjs");
   const answerHashFieldStr = hashBytesToFieldStr(
@@ -309,12 +296,12 @@ async function handleQuestAnswer(
         pubkey_lo: lo,
         pubkey_hi: hi,
       },
-      circuitWasm,
-      zkeyPath
+      CIRCUIT_WASM_PATH,
+      ZKEY_PATH
     );
     proof = result.proof;
   } catch (err: any) {
-    printError(`ZK 证明生成失败: ${err.message}`);
+    printError(`ZK proof generation failed: ${err.message}`);
     process.exit(1);
   }
 
@@ -323,12 +310,12 @@ async function handleQuestAnswer(
   // 5. Check deadline again after proof generation
   const nowAfterProof = Math.floor(Date.now() / 1000);
   if (nowAfterProof >= deadline) {
-    printError("证明生成期间题目已过期");
+    printError("Quest expired during proof generation");
     process.exit(1);
   }
 
   // 6. Submit answer
-  printInfo("正在提交答案...");
+  printInfo("Submitting answer...");
 
   try {
     const tx = await program.methods
@@ -337,8 +324,8 @@ async function handleQuestAnswer(
       .signers([wallet])
       .rpc({ skipPreflight: true });
 
-    printSuccess("答案已提交!");
-    console.log(`  交易: ${tx}`);
+    printSuccess("Answer submitted!");
+    console.log(`  Transaction: ${tx}`);
 
     // 7. Parse transaction for reward
     await parseReward(connection, tx, wallet.publicKey, options);
@@ -355,19 +342,7 @@ async function handleRelayAnswer(
   relayUrl: string,
   options: GlobalOptions
 ) {
-  printInfo("正在生成 ZK 证明...");
-
-  const circuitWasm = CIRCUIT_WASM_PATH;
-  const zkeyPath = ZKEY_PATH;
-
-  if (!circuitWasm || !zkeyPath) {
-    printError(
-      "未配置 ZK 证明文件路径。请设置环境变量:\n" +
-        "  QUEST_CIRCUIT_WASM=<path to answer_proof.wasm>\n" +
-        "  QUEST_ZKEY=<path to answer_proof_final.zkey>"
-    );
-    process.exit(1);
-  }
+  printInfo("Generating ZK proof...");
 
   const snarkjs = await import("snarkjs");
   const answerHashFieldStr = hashBytesToFieldStr(
@@ -384,12 +359,12 @@ async function handleRelayAnswer(
         pubkey_lo: lo,
         pubkey_hi: hi,
       },
-      circuitWasm,
-      zkeyPath
+      CIRCUIT_WASM_PATH,
+      ZKEY_PATH
     );
     proof = result.proof;
   } catch (err: any) {
-    printError(`ZK 证明生成失败: ${err.message}`);
+    printError(`ZK proof generation failed: ${err.message}`);
     process.exit(1);
   }
 
@@ -411,7 +386,7 @@ async function handleRelayAnswer(
     be(proof.pi_c[1]),
   ]).toString("hex");
 
-  printInfo("正在通过 relay 提交答案...");
+  printInfo("Submitting answer via relay...");
 
   const res = await fetch(`${relayUrl}/submit-answer`, {
     method: "POST",
@@ -426,13 +401,13 @@ async function handleRelayAnswer(
 
   const data = (await res.json()) as any;
   if (!res.ok) {
-    printError(`Relay 提交失败: ${data.error ?? `HTTP ${res.status}`}`);
+    printError(`Relay submission failed: ${data.error ?? `HTTP ${res.status}`}`);
     process.exit(1);
   }
 
   const txHash = data.txHash as string;
-  printSuccess("答案已通过 relay 提交!");
-  console.log(`  交易: ${txHash}`);
+  printSuccess("Answer submitted via relay!");
+  console.log(`  Transaction: ${txHash}`);
 
   // Parse reward from relay transaction
   const rpcUrl = getRpcUrl(options.rpcUrl);
@@ -447,7 +422,7 @@ async function parseReward(
   userPubkey: PublicKey,
   options: GlobalOptions
 ) {
-  printInfo("正在查询交易详情...");
+  printInfo("Fetching transaction details...");
 
   // Wait a bit for transaction to be confirmed
   await new Promise((r) => setTimeout(r, 2000));
@@ -467,7 +442,7 @@ async function parseReward(
   }
 
   if (!txInfo) {
-    printWarning("无法获取交易详情，请稍后手动查看");
+    printWarning("Failed to fetch transaction details. Please check manually later.");
     console.log(
       `  https://solscan.io/tx/${txSignature}?cluster=devnet`
     );
@@ -516,7 +491,7 @@ async function parseReward(
 
   if (rewardLamports > 0) {
     const rewardSol = rewardLamports / LAMPORTS_PER_SOL;
-    printSuccess(`恭喜! 获得奖励: ${rewardSol} SOL`);
+    printSuccess(`Congratulations! Reward received: ${rewardSol} SOL`);
     if (options.json) {
       formatOutput(
         {
@@ -529,7 +504,7 @@ async function parseReward(
       );
     }
   } else {
-    printWarning("答对了，但没有获得奖励 — 本轮奖励名额已被领完");
+    printWarning("Correct answer, but no reward — all reward slots have been claimed");
     if (options.json) {
       formatOutput(
         { signature: txSignature, rewarded: false, rewardLamports: 0 },
@@ -544,21 +519,21 @@ function handleSubmitError(err: any) {
   const errCode = anchorErrorCode(err);
   switch (errCode) {
     case "alreadyAnswered":
-      printWarning("你已经回答过本轮题目了");
+      printWarning("You have already answered this round");
       break;
     case "deadlineExpired":
-      printError("题目已过期");
+      printError("Quest has expired");
       break;
     case "invalidProof":
-      printError("答案错误 (ZK 证明验证失败)");
+      printError("Wrong answer (ZK proof verification failed)");
       break;
     case "poolNotActive":
-      printError("当前没有活跃的题目");
+      printError("No active quest at the moment");
       break;
     default:
-      printError(`提交答案失败: ${err.message ?? String(err)}`);
+      printError(`Failed to submit answer: ${err.message ?? String(err)}`);
       if (err.logs) {
-        console.log("  日志:");
+        console.log("  Logs:");
         err.logs.slice(-5).forEach((l: string) => console.log(`    ${l}`));
       }
   }
@@ -569,12 +544,12 @@ function handleSubmitError(err: any) {
 export function registerQuestCommands(program: Command): void {
   const quest = program
     .command("quest")
-    .description("Quest (答题) commands");
+    .description("Quest commands");
 
   // quest get
   quest
     .command("get")
-    .description("获取当前题目信息")
+    .description("Get current quest info")
     .action(async (_opts: any, cmd: Command) => {
       try {
         const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
@@ -588,8 +563,8 @@ export function registerQuestCommands(program: Command): void {
   // quest answer
   quest
     .command("answer <answer>")
-    .description("提交答案")
-    .option("--relay [url]", `通过 relay 服务提交，免 gas (默认: ${DEFAULT_QUEST_RELAY_URL})`)
+    .description("Submit an answer")
+    .option("--relay [url]", `Submit via relay service, gasless (default: ${DEFAULT_QUEST_RELAY_URL})`)
     .action(async (answer: string, opts: any, cmd: Command) => {
       try {
         const globalOpts = cmd.optsWithGlobals() as GlobalOptions;

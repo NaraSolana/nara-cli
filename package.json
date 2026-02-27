@@ -1,7 +1,7 @@
 {
   "name": "nara-cli",
   "version": "0.1.0",
-  "description": "Nara Wallet CLI",
+  "description": "CLI for the Nara chain (Solana-compatible)",
   "module": "index.ts",
   "main": "index.ts",
   "type": "module",
@@ -21,12 +21,11 @@
     "bin"
   ],
   "keywords": [
+    "nara",
     "solana",
-    "dbc",
-    "bonding-curve",
-    "token",
-    "sdk",
-    "cli"
+    "blockchain",
+    "cli",
+    "sdk"
   ],
   "author": "",
   "license": "MIT",
