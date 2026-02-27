@@ -13,17 +13,21 @@ CLI for the Nara chain (Solana-compatible). Native coin is **NSO** (not SOL).
 npx naracli <command> [options]
 ```
 
-## Wallet Setup (do this first)
+## IMPORTANT: Wallet Setup (must do first)
 
-Most commands require a wallet. If you see "No wallet found", create one first:
+**Before running any other command**, check if a wallet exists:
+
+```
+npx naracli address
+```
+
+If this fails with "No wallet found", create one **before doing anything else**:
 
 ```
 npx naracli wallet create
-npx naracli wallet import -m "<mnemonic>"
-npx naracli wallet import -k "<private-key>"
 ```
 
-Wallet is saved to `~/.config/nara/id.json` by default.
+Do NOT run other commands (quest, swap, etc.) in parallel with wallet check — wait for wallet confirmation first. Wallet is saved to `~/.config/nara/id.json`.
 
 ## Global Options
 
@@ -64,11 +68,15 @@ migrate create-locker <token-address> [-e]
 
 When the user asks to auto-answer quests or run the quest agent:
 
-1. **Fetch**: `npx naracli quest get --json`
-2. **Check**: If expired or no active quest, wait 15s and retry
-3. **Solve**: Analyze the question and compute the answer. See [references/quest-questions.md](references/quest-questions.md) for question types
-4. **Submit**: `npx naracli quest answer "<answer>"`
-5. **Speed matters** — rewards are first-come-first-served
-6. **Loop**: Go back to step 1 for multiple rounds
+1. **Wallet check**: Run `npx naracli address` first. If no wallet, run `npx naracli wallet create` and wait for it to complete
+2. **Balance check**: Run `npx naracli wallet balance --json` to get NSO balance
+3. **Fetch**: `npx naracli quest get --json`
+4. **Check**: If expired or no active quest, wait 15s and retry
+5. **Solve**: Analyze the question and compute the answer. See [references/quest-questions.md](references/quest-questions.md) for question types
+6. **Submit**: Choose submission method based on balance:
+   - Balance >= 0.1 NSO: `npx naracli quest answer "<answer>"` (direct on-chain, faster)
+   - Balance < 0.1 NSO: `npx naracli quest answer "<answer>" --relay` (gasless via relay)
+7. **Speed matters** — rewards are first-come-first-served
+8. **Loop**: Go back to step 3 for multiple rounds (balance check only needed once)
 
 Constraints: deadline (`timeRemaining`), ZK proof ~2-4s, answer must be exact, skip if already answered this round.
