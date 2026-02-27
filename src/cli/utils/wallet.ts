@@ -47,9 +47,8 @@ export async function loadWallet(walletPath?: string): Promise<Keypair> {
     }
   } catch (error: any) {
     if (!walletPath) {
-      // If using default path and it doesn't exist, provide helpful error message
       throw new Error(
-        `Wallet not found. Please create a wallet at ${DEFAULT_WALLET_PATH} or use --wallet flag to specify a different path.`
+        `No wallet found. Create one first:\n\n  npx naracli wallet create\n`
       );
     } else {
       throw new Error(`Failed to load wallet from ${path}: ${error.message}`);

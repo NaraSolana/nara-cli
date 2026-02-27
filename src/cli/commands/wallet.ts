@@ -19,7 +19,7 @@ import * as bip39 from "bip39";
 import { derivePath } from "ed25519-hd-key";
 import { join } from "node:path";
 import { homedir } from "node:os";
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile, access } from "node:fs/promises";
 import bs58 from "bs58";
 import { NaraSDK } from "../../client";
 import { DEFAULT_WALLET_PATH as _DEFAULT_WALLET_PATH } from "../../constants";
@@ -593,10 +593,13 @@ async function handleWalletCreate(options: { output?: string }): Promise<void> {
   const outputPath = options.output || DEFAULT_WALLET_PATH;
 
   // Check if wallet file already exists
-  if (await Bun.file(outputPath).exists()) {
+  try {
+    await access(outputPath);
     throw new Error(
       `Wallet file already exists at ${outputPath}. Please use a different path or remove the existing file first.`
     );
+  } catch (e: any) {
+    if (e.code !== "ENOENT") throw e;
   }
 
   // Generate mnemonic (12 words by default, can be changed to 24)
@@ -613,7 +616,7 @@ async function handleWalletCreate(options: { output?: string }): Promise<void> {
 
   // Save wallet to file
   const walletData = Array.from(keypair.secretKey);
-  await Bun.write(outputPath, JSON.stringify(walletData, null, 2));
+  await writeFile(outputPath, JSON.stringify(walletData, null, 2));
 
   // Display results
   console.log("\n✅ Wallet created successfully!");
@@ -641,10 +644,13 @@ async function handleWalletImport(options: {
   const outputPath = options.output || DEFAULT_WALLET_PATH;
 
   // Check if wallet file already exists
-  if (await Bun.file(outputPath).exists()) {
+  try {
+    await access(outputPath);
     throw new Error(
       `Wallet file already exists at ${outputPath}. Please use a different path or remove the existing file first.`
     );
+  } catch (e: any) {
+    if (e.code !== "ENOENT") throw e;
   }
 
   let keypair: Keypair;
@@ -691,7 +697,7 @@ async function handleWalletImport(options: {
 
   // Save wallet to file
   const walletData = Array.from(keypair.secretKey);
-  await Bun.write(outputPath, JSON.stringify(walletData, null, 2));
+  await writeFile(outputPath, JSON.stringify(walletData, null, 2));
 
   // Display results
   console.log("\n✅ Wallet imported successfully!");
