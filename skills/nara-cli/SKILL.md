@@ -13,12 +13,14 @@ CLI for the Nara chain (Solana-compatible). Native coin is **NSO** (not SOL).
 npx naracli <command> [options]
 ```
 
+**First run**: use `npx naracli@latest address` to ensure latest version is installed. After that, `npx naracli` will use the cached version.
+
 ## IMPORTANT: Wallet Setup (must do first)
 
 **Before running any other command**, check if a wallet exists:
 
 ```
-npx naracli address
+npx naracli@latest address
 ```
 
 If this fails with "No wallet found", create one **before doing anything else**:
