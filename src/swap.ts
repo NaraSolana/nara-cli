@@ -1,6 +1,6 @@
 import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 import BN from "bn.js";
-import { NaraDBC } from "./client";
+import { NaraSDK } from "./client";
 import {
   deriveDammV2PoolAddress,
   DAMM_V2_MIGRATION_FEE_ADDRESS,
@@ -39,7 +39,7 @@ export interface SwapQuoteResponse {
  * Check if pool has migrated to DAMM V2 and return relevant information
  */
 async function checkPoolMigration(
-  sdk: NaraDBC,
+  sdk: NaraSDK,
   tokenAddress: string
 ): Promise<{
   isMigrated: boolean;
@@ -98,7 +98,7 @@ async function checkPoolMigration(
 
 /**
  * Get swap quote
- * @param sdk NaraDBC SDK instance
+ * @param sdk NaraSDK SDK instance
  * @param tokenAddress Token address (baseMint)
  * @param amountIn Input amount
  * @param swapBaseForQuote true=sell token for SOL, false=buy token with SOL
@@ -106,7 +106,7 @@ async function checkPoolMigration(
  * @returns Swap quote information
  */
 export async function getSwapQuote(
-  sdk: NaraDBC,
+  sdk: NaraSDK,
   tokenAddress: string,
   amountIn: BN,
   swapBaseForQuote: boolean,
@@ -171,12 +171,12 @@ export interface BuyTokenResult {
 
 /**
  * Create buy token transaction (returns unsigned transaction)
- * @param sdk NaraDBC SDK instance
+ * @param sdk NaraSDK SDK instance
  * @param params Buy parameters
  * @returns Unsigned transaction and related information
  */
 export async function buyToken(
-  sdk: NaraDBC,
+  sdk: NaraSDK,
   params: BuyTokenParams
 ): Promise<BuyTokenResult> {
   const client = sdk.getClient();
@@ -400,12 +400,12 @@ export interface SellTokenResult {
 
 /**
  * Create sell token transaction (returns unsigned transaction)
- * @param sdk NaraDBC SDK instance
+ * @param sdk NaraSDK SDK instance
  * @param params Sell parameters
  * @returns Unsigned transaction and related information
  */
 export async function sellToken(
-  sdk: NaraDBC,
+  sdk: NaraSDK,
   params: SellTokenParams
 ): Promise<SellTokenResult> {
   const client = sdk.getClient();

@@ -3,7 +3,7 @@
  */
 
 import { Command } from "commander";
-import { NaraDBC } from "../../client";
+import { NaraSDK } from "../../client";
 import { migrateToDAMMV2, createLocker, canMigrate } from "../../migrate";
 import { loadWallet, getRpcUrl } from "../utils/wallet";
 import { validatePublicKey } from "../utils/validation";
@@ -104,7 +104,7 @@ async function handleMigrateLaunch(
   validatePublicKey(tokenAddress);
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl,
     commitment: "confirmed",
   });
@@ -177,7 +177,7 @@ async function handleMigrateCreateLocker(
   validatePublicKey(tokenAddress);
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl,
     commitment: "confirmed",
   });
@@ -236,7 +236,7 @@ async function handleMigrateCheck(
   validatePublicKey(tokenAddress);
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl,
     commitment: "confirmed",
   });

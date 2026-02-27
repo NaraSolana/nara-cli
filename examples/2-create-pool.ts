@@ -17,7 +17,7 @@
  */
 
 import {
-  NaraDBC,
+  NaraSDK,
   createPool,
   createPoolWithFirstBuy,
   Keypair,
@@ -53,7 +53,7 @@ async function main() {
   console.log("Config:", configAddress);
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl: getRpcUrl(),
     commitment: "confirmed",
   });
@@ -74,7 +74,7 @@ async function main() {
  * Method 1: Create pool with initial buy
  */
 async function createPoolWithBuy(
-  sdk: NaraDBC,
+  sdk: NaraSDK,
   wallet: Keypair,
   configAddress: string,
   initialBuyAmount: number
@@ -138,7 +138,7 @@ async function createPoolWithBuy(
  * Method 2: Create pool only (no initial buy)
  */
 async function createPoolOnly(
-  sdk: NaraDBC,
+  sdk: NaraSDK,
   wallet: Keypair,
   configAddress: string
 ) {

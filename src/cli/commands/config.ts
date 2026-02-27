@@ -3,7 +3,7 @@
  */
 
 import { Command } from "commander";
-import { NaraDBC } from "../../client";
+import { NaraSDK } from "../../client";
 import { createConfig } from "../../config";
 import { loadWallet, getRpcUrl } from "../utils/wallet";
 import { validatePublicKey } from "../utils/validation";
@@ -65,7 +65,7 @@ async function handleConfigCreate(
   printInfo(`Wallet: ${wallet.publicKey.toBase58()}`);
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl,
     commitment: "confirmed",
   });

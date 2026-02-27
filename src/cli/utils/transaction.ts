@@ -8,7 +8,7 @@ import {
   VersionedTransaction,
   Keypair,
 } from "@solana/web3.js";
-import { NaraDBC } from "../../client";
+import { NaraSDK } from "../../client";
 import { printInfo, printSuccess } from "./output";
 
 /**
@@ -24,14 +24,14 @@ export interface TransactionResult {
 /**
  * Handle transaction signing and sending or exporting
  *
- * @param sdk NaraDBC SDK instance
+ * @param sdk NaraSDK SDK instance
  * @param transaction Transaction or VersionedTransaction
  * @param signers Array of keypairs to sign with
  * @param exportMode Whether to export unsigned transaction
  * @returns Transaction result with signature or base64
  */
 export async function handleTransaction(
-  sdk: NaraDBC,
+  sdk: NaraSDK,
   transaction: Transaction | VersionedTransaction,
   signers: Keypair[],
   exportMode: boolean = false
@@ -68,13 +68,13 @@ function exportTransaction(
 
 /**
  * Sign and send transaction
- * @param sdk NaraDBC SDK instance
+ * @param sdk NaraSDK SDK instance
  * @param transaction Transaction to sign and send
  * @param signers Keypairs to sign with
  * @returns Transaction signature
  */
 async function signAndSendTransaction(
-  sdk: NaraDBC,
+  sdk: NaraSDK,
   transaction: Transaction | VersionedTransaction,
   signers: Keypair[]
 ): Promise<TransactionResult> {

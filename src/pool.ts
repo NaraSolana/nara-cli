@@ -7,7 +7,7 @@ import {
 import { NATIVE_MINT } from "@solana/spl-token";
 import BN from "bn.js";
 import { deriveDbcPoolAddress } from "@meteora-ag/dynamic-bonding-curve-sdk";
-import { NaraDBC } from "./client";
+import { NaraSDK } from "./client";
 
 export interface CreatePoolParams {
   name: string;
@@ -64,12 +64,12 @@ export interface CreatePoolWithFirstBuyResult {
  * Note: If you want to make an initial buy, wait for this transaction to confirm
  * before using the buyToken() function
  *
- * @param sdk NaraDBC SDK instance
+ * @param sdk NaraSDK SDK instance
  * @param params Pool parameters
  * @returns Pool address, token address, unsigned transaction, and baseMint keypair
  */
 export async function createPool(
-  sdk: NaraDBC,
+  sdk: NaraSDK,
   params: CreatePoolParams
 ): Promise<CreatePoolResult> {
   const connection = sdk.getConnection();
@@ -120,12 +120,12 @@ export async function createPool(
  *
  * Uses SDK's createPoolWithFirstBuy method to complete creation and buy in one transaction
  *
- * @param sdk NaraDBC SDK instance
+ * @param sdk NaraSDK SDK instance
  * @param params Pool and buy parameters
  * @returns Pool address, token address, unsigned transactions, and baseMint keypair
  */
 export async function createPoolWithFirstBuy(
-  sdk: NaraDBC,
+  sdk: NaraSDK,
   params: CreatePoolWithFirstBuyParams
 ): Promise<CreatePoolWithFirstBuyResult> {
   const connection = sdk.getConnection();
@@ -210,11 +210,11 @@ export async function createPoolWithFirstBuy(
 
 /**
  * Get pool information
- * @param sdk NaraDBC SDK instance
+ * @param sdk NaraSDK SDK instance
  * @param tokenAddress Token address (baseMint)
  * @returns Pool information
  */
-export async function getPoolInfo(sdk: NaraDBC, tokenAddress: string) {
+export async function getPoolInfo(sdk: NaraSDK, tokenAddress: string) {
   const client = sdk.getClient();
   const tokenPubkey = new PublicKey(tokenAddress);
 
@@ -232,11 +232,11 @@ export async function getPoolInfo(sdk: NaraDBC, tokenAddress: string) {
 
 /**
  * Get pool curve progress
- * @param sdk NaraDBC SDK instance
+ * @param sdk NaraSDK SDK instance
  * @param tokenAddress Token address (baseMint)
  * @returns Curve progress information
  */
-export async function getPoolProgress(sdk: NaraDBC, tokenAddress: string) {
+export async function getPoolProgress(sdk: NaraSDK, tokenAddress: string) {
   const client = sdk.getClient();
   const tokenPubkey = new PublicKey(tokenAddress);
 

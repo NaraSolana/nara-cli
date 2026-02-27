@@ -8,19 +8,19 @@ import {
 } from "@solana/web3.js";
 import { DynamicBondingCurveClient } from "@meteora-ag/dynamic-bonding-curve-sdk";
 
-export interface NaraDBCConfig {
+export interface NaraSDKConfig {
   rpcUrl: string;
   commitment?: "processed" | "confirmed" | "finalized";
   /** Address Lookup Table addresses array for compressing transaction size */
   addressLookupTableAddresses?: string[];
 }
 
-export class NaraDBC {
+export class NaraSDK {
   private connection: Connection;
   private client: DynamicBondingCurveClient;
   private addressLookupTableAddresses: PublicKey[];
 
-  constructor(config: NaraDBCConfig) {
+  constructor(config: NaraSDKConfig) {
     this.connection = new Connection(
       config.rpcUrl,
       config.commitment || "confirmed"

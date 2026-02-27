@@ -21,7 +21,7 @@ import { join } from "node:path";
 import { homedir } from "node:os";
 import { mkdir } from "node:fs/promises";
 import bs58 from "bs58";
-import { NaraDBC } from "../../client";
+import { NaraSDK } from "../../client";
 import { DEFAULT_WALLET_PATH as _DEFAULT_WALLET_PATH } from "../../constants";
 import { loadWallet, getRpcUrl } from "../utils/wallet";
 import { validatePublicKey, validatePositiveNumber } from "../utils/validation";
@@ -101,7 +101,7 @@ export function registerWalletCommands(program: Command): void {
   // wallet balance
   wallet
     .command("balance")
-    .description("Check SOL balance")
+    .description("Check NSO balance")
     .argument("[address]", "Wallet address (optional, defaults to current wallet)")
     .action(async (address: string | undefined, options: WalletBalanceOptions) => {
       try {
@@ -149,7 +149,7 @@ export function registerWalletCommands(program: Command): void {
   // wallet transfer
   wallet
     .command("transfer <to> <amount>")
-    .description("Transfer SOL to another wallet")
+    .description("Transfer NSO to another wallet")
     .option("-e, --export-tx", "Export unsigned transaction", false)
     .action(
       async (
@@ -203,7 +203,7 @@ async function handleWalletBalance(
   printInfo(`Using RPC: ${rpcUrl}`);
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl,
     commitment: "confirmed",
   });
@@ -236,7 +236,7 @@ async function handleWalletBalance(
     console.log(JSON.stringify(output, null, 2));
   } else {
     console.log(`\nWallet: ${pubkey.toBase58()}`);
-    console.log(`Balance: ${balanceSOL.toFixed(4)} SOL (${balance.toLocaleString()} lamports)`);
+    console.log(`Balance: ${balanceSOL.toFixed(4)} NSO (${balance.toLocaleString()} lamports)`);
   }
 }
 
@@ -257,7 +257,7 @@ async function handleTokenBalance(
   const tokenMint = validatePublicKey(tokenAddress);
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl,
     commitment: "confirmed",
   });
@@ -339,7 +339,7 @@ async function handleTxStatus(
   printInfo(`Checking transaction: ${signature}`);
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl,
     commitment: "confirmed",
   });
@@ -399,7 +399,7 @@ async function handleTxStatus(
       console.log(`Time: ${date.toISOString()}`);
     }
     if (output.fee) {
-      console.log(`Fee: ${output.fee / LAMPORTS_PER_SOL} SOL`);
+      console.log(`Fee: ${output.fee / LAMPORTS_PER_SOL} NSO`);
     }
     if (output.error) {
       console.log(`Error: ${JSON.stringify(output.error)}`);
@@ -434,10 +434,10 @@ async function handleTransferSol(
   const lamports = Math.floor(amountSOL * LAMPORTS_PER_SOL);
 
   printInfo(`To: ${recipient.toBase58()}`);
-  printInfo(`Amount: ${amountSOL} SOL`);
+  printInfo(`Amount: ${amountSOL} NSO`);
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl,
     commitment: "confirmed",
   });
@@ -482,7 +482,7 @@ async function handleTransferSol(
     console.log(`\nTransfer Details:`);
     console.log(`  From: ${wallet.publicKey.toBase58()}`);
     console.log(`  To: ${recipient.toBase58()}`);
-    console.log(`  Amount: ${amountSOL} SOL`);
+    console.log(`  Amount: ${amountSOL} NSO`);
     printTransactionResult(txResult, false);
   }
 }
@@ -519,7 +519,7 @@ async function handleTransferToken(
   printInfo(`Amount: ${amountInToken} tokens`);
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl,
     commitment: "confirmed",
   });

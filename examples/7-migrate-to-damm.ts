@@ -14,7 +14,7 @@
  * Run: bun examples/7-migrate-to-damm.ts
  */
 
-import { NaraDBC, migrateToDAMMV2, canMigrate, Keypair } from "../index";
+import { NaraSDK, migrateToDAMMV2, canMigrate, Keypair } from "../index";
 import { getRpcUrl } from "./utils";
 import {
   sendAndConfirmTransaction,
@@ -45,7 +45,7 @@ async function main() {
   console.log("Token:", tokenAddress);
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl: getRpcUrl(),
     commitment: "confirmed",
   });

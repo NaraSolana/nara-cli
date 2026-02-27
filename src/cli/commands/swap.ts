@@ -4,7 +4,7 @@
 
 import { Command } from "commander";
 import BN from "bn.js";
-import { NaraDBC } from "../../client";
+import { NaraSDK } from "../../client";
 import { buyToken, sellToken, getSwapQuote, SwapMode } from "../../swap";
 import { loadWallet, getRpcUrl } from "../utils/wallet";
 import {
@@ -35,7 +35,7 @@ export function registerSwapCommands(program: Command): void {
   // swap buy
   swap
     .command("buy <token-address> <amount>")
-    .description("Buy tokens with SOL")
+    .description("Buy tokens with NSO")
     .option("--slippage <number>", "Slippage in basis points", "100")
     .option(
       "--mode <mode>",
@@ -61,7 +61,7 @@ export function registerSwapCommands(program: Command): void {
   // swap sell
   swap
     .command("sell <token-address> <amount>")
-    .description("Sell tokens for SOL")
+    .description("Sell tokens for NSO")
     .option("--decimals <number>", "Token decimals", "6")
     .option("--slippage <number>", "Slippage in basis points", "100")
     .option(
@@ -155,12 +155,12 @@ async function handleSwapBuy(
   const swapMode = parseSwapMode(options.mode || "partial-fill");
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl,
     commitment: "confirmed",
   });
 
-  printInfo(`Buying tokens with ${amountInSOL} SOL...`);
+  printInfo(`Buying tokens with ${amountInSOL} NSO...`);
 
   // Buy tokens
   const result = await buyToken(sdk, {
@@ -194,7 +194,7 @@ async function handleSwapBuy(
     console.log(JSON.stringify(output, null, 2));
   } else {
     console.log(`\nSwap Details:`);
-    console.log(`  Input: ${(parseInt(result.amountIn) / 1e9).toFixed(4)} SOL`);
+    console.log(`  Input: ${(parseInt(result.amountIn) / 1e9).toFixed(4)} NSO`);
     console.log(`  Expected Output: ${result.expectedAmountOut} tokens`);
     console.log(`  Minimum Output: ${result.minimumAmountOut} tokens`);
     printTransactionResult(txResult, false);
@@ -230,7 +230,7 @@ async function handleSwapSell(
   const swapMode = parseSwapMode(options.mode || "partial-fill");
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl,
     commitment: "confirmed",
   });
@@ -247,8 +247,8 @@ async function handleSwapSell(
     swapMode,
   });
 
-  printInfo(`Expected output: ${(parseInt(result.expectedAmountOut) / 1e9).toFixed(4)} SOL`);
-  printInfo(`Minimum output: ${(parseInt(result.minimumAmountOut) / 1e9).toFixed(4)} SOL`);
+  printInfo(`Expected output: ${(parseInt(result.expectedAmountOut) / 1e9).toFixed(4)} NSO`);
+  printInfo(`Minimum output: ${(parseInt(result.minimumAmountOut) / 1e9).toFixed(4)} NSO`);
 
   // Handle transaction
   const txResult = await handleTransaction(
@@ -271,8 +271,8 @@ async function handleSwapSell(
   } else {
     console.log(`\nSwap Details:`);
     console.log(`  Input: ${result.amountIn} tokens`);
-    console.log(`  Expected Output: ${(parseInt(result.expectedAmountOut) / 1e9).toFixed(4)} SOL`);
-    console.log(`  Minimum Output: ${(parseInt(result.minimumAmountOut) / 1e9).toFixed(4)} SOL`);
+    console.log(`  Expected Output: ${(parseInt(result.expectedAmountOut) / 1e9).toFixed(4)} NSO`);
+    console.log(`  Minimum Output: ${(parseInt(result.minimumAmountOut) / 1e9).toFixed(4)} NSO`);
     printTransactionResult(txResult, false);
   }
 }
@@ -305,7 +305,7 @@ async function handleSwapQuote(
   );
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl,
     commitment: "confirmed",
   });
@@ -316,7 +316,7 @@ async function handleSwapQuote(
     ? new BN(amountNum * 10 ** decimals) // Tokens to smallest unit
     : new BN(amountNum * 1e9); // SOL to lamports
 
-  printInfo(`Getting ${dir} quote for ${amountNum} ${swapBaseForQuote ? "tokens" : "SOL"}...`);
+  printInfo(`Getting ${dir} quote for ${amountNum} ${swapBaseForQuote ? "tokens" : "NSO"}...`);
 
   // Get quote
   const quote = await getSwapQuote(
@@ -335,11 +335,11 @@ async function handleSwapQuote(
     if (swapBaseForQuote) {
       // Selling tokens for SOL
       console.log(`  Input: ${(parseInt(quote.amountIn) / 10 ** decimals).toFixed(4)} tokens`);
-      console.log(`  Expected Output: ${(parseInt(quote.outputAmount) / 1e9).toFixed(4)} SOL`);
-      console.log(`  Minimum Output: ${(parseInt(quote.minimumAmountOut) / 1e9).toFixed(4)} SOL`);
+      console.log(`  Expected Output: ${(parseInt(quote.outputAmount) / 1e9).toFixed(4)} NSO`);
+      console.log(`  Minimum Output: ${(parseInt(quote.minimumAmountOut) / 1e9).toFixed(4)} NSO`);
     } else {
-      // Buying tokens with SOL
-      console.log(`  Input: ${(parseInt(quote.amountIn) / 1e9).toFixed(4)} SOL`);
+      // Buying tokens with NSO
+      console.log(`  Input: ${(parseInt(quote.amountIn) / 1e9).toFixed(4)} NSO`);
       console.log(`  Expected Output: ${quote.outputAmount} tokens (smallest unit)`);
       console.log(`  Minimum Output: ${quote.minimumAmountOut} tokens (smallest unit)`);
     }

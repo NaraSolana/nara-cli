@@ -198,8 +198,8 @@ async function handleQuestGet(options: GlobalOptions) {
     round: pool.round.toString(),
     questionId: pool.questionId.toString(),
     question: pool.question,
-    rewardPerWinner: `${rewardPerWinner} SOL`,
-    totalReward: `${totalReward} SOL`,
+    rewardPerWinner: `${rewardPerWinner} NSO`,
+    totalReward: `${totalReward} NSO`,
     rewardSlots: `${pool.winnerCount}/${pool.rewardCount}`,
     remainingRewardSlots: remainingRewards,
     deadline: new Date(deadline * 1000).toLocaleString(),
@@ -213,8 +213,8 @@ async function handleQuestGet(options: GlobalOptions) {
     console.log("");
     console.log(`  Question: ${pool.question}`);
     console.log(`  Round: #${pool.round.toString()}`);
-    console.log(`  Reward per winner: ${rewardPerWinner} SOL`);
-    console.log(`  Total reward: ${totalReward} SOL`);
+    console.log(`  Reward per winner: ${rewardPerWinner} NSO`);
+    console.log(`  Total reward: ${totalReward} NSO`);
     console.log(
       `  Reward slots: ${pool.winnerCount}/${pool.rewardCount} (${remainingRewards} remaining)`
     );
@@ -491,7 +491,7 @@ async function parseReward(
 
   if (rewardLamports > 0) {
     const rewardSol = rewardLamports / LAMPORTS_PER_SOL;
-    printSuccess(`Congratulations! Reward received: ${rewardSol} SOL`);
+    printSuccess(`Congratulations! Reward received: ${rewardSol} NSO`);
     if (options.json) {
       formatOutput(
         {

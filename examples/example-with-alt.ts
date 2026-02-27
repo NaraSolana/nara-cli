@@ -6,7 +6,7 @@
  * Run: bun examples/example-with-alt.ts
  */
 
-import { NaraDBC, buyToken, Keypair } from "../index";
+import { NaraSDK, buyToken, Keypair } from "../index";
 import { getRpcUrl } from "./utils";
 import {
   sendAndConfirmTransaction,
@@ -34,7 +34,7 @@ async function main() {
   console.log("Token:", tokenAddress);
 
   // Initialize SDK with ALT configuration
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl: getRpcUrl(),
     commitment: "confirmed",
     addressLookupTableAddresses: altAddress ? [altAddress] : [], // Optional: configure ALT address

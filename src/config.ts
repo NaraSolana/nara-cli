@@ -11,7 +11,7 @@ import {
   TokenUpdateAuthorityOption,
 } from "@meteora-ag/dynamic-bonding-curve-sdk";
 import { NATIVE_MINT } from "@solana/spl-token";
-import { NaraDBC } from "./client";
+import { NaraSDK } from "./client";
 
 /**
  * Options for creating configuration
@@ -46,12 +46,12 @@ export interface CreateConfigResult {
 
 /**
  * Create bonding curve config transaction (returns unsigned transaction)
- * @param sdk NaraDBC SDK instance
+ * @param sdk NaraSDK SDK instance
  * @param options Configuration options
  * @returns Config address, unsigned transaction, and config keypair
  */
 export async function createConfig(
-  sdk: NaraDBC,
+  sdk: NaraSDK,
   options: CreateConfigOptions
 ): Promise<CreateConfigResult> {
   const connection = sdk.getConnection();

@@ -7,7 +7,7 @@
  */
 
 // Export main client
-export { NaraDBC, type NaraDBCConfig } from "./src/client";
+export { NaraSDK, type NaraSDKConfig } from "./src/client";
 
 // Export constants
 export { DEFAULT_RPC_URL } from "./src/constants";

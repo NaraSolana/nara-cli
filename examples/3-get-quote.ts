@@ -11,7 +11,7 @@
  * Run: bun examples/3-get-quote.ts
  */
 
-import { NaraDBC, getSwapQuote, BN } from "../index";
+import { NaraSDK, getSwapQuote, BN } from "../index";
 import { getRpcUrl } from "./utils";
 
 async function main() {
@@ -25,7 +25,7 @@ async function main() {
   }
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl: getRpcUrl(),
     commitment: "confirmed",
   });

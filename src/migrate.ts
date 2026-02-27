@@ -5,7 +5,7 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import BN from "bn.js";
-import { NaraDBC } from "./client";
+import { NaraSDK } from "./client";
 import { DAMM_V2_MIGRATION_FEE_ADDRESS } from "@meteora-ag/dynamic-bonding-curve-sdk";
 
 export interface MigrateToDAMMV2Params {
@@ -50,12 +50,12 @@ export interface CreateLockerResult {
  * - If token has locked vesting parameters, may need to call createLocker() first
  * - Requires signatures from three keypairs: payer, firstPositionNftKeypair, secondPositionNftKeypair
  *
- * @param sdk NaraDBC SDK instance
+ * @param sdk NaraSDK SDK instance
  * @param params Migration parameters
  * @returns Migration transaction, Position NFT keypairs, and pool address
  */
 export async function migrateToDAMMV2(
-  sdk: NaraDBC,
+  sdk: NaraSDK,
   params: MigrateToDAMMV2Params
 ): Promise<MigrateToDAMMV2Result> {
   const connection = sdk.getConnection();
@@ -123,12 +123,12 @@ export async function migrateToDAMMV2(
  * If the token pool has locked vesting parameters (amountPerPeriod > 0 or cliffUnlockAmount > 0),
  * a locker must be created before migrating to DAMM V2
  *
- * @param sdk NaraDBC SDK instance
+ * @param sdk NaraSDK SDK instance
  * @param params Locker parameters
  * @returns Locker creation transaction and pool address
  */
 export async function createLocker(
-  sdk: NaraDBC,
+  sdk: NaraSDK,
   params: CreateLockerParams
 ): Promise<CreateLockerResult> {
   const connection = sdk.getConnection();
@@ -167,12 +167,12 @@ export async function createLocker(
 /**
  * Check if pool can be launched to DAMM V2
  *
- * @param sdk NaraDBC SDK instance
+ * @param sdk NaraSDK SDK instance
  * @param tokenAddress Token address (baseMint)
  * @returns Whether pool can be launched
  */
 export async function canMigrate(
-  sdk: NaraDBC,
+  sdk: NaraSDK,
   tokenAddress: string
 ): Promise<{
   canMigrate: boolean;

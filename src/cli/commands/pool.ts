@@ -3,7 +3,7 @@
  */
 
 import { Command } from "commander";
-import { NaraDBC } from "../../client";
+import { NaraSDK } from "../../client";
 import { DEFAULT_DBC_CONFIG_ADDRESS } from "../../constants";
 import {
   createPool,
@@ -69,7 +69,7 @@ export function registerPoolCommands(program: Command): void {
       "--dbc-config <address>",
       "DBC config address (or set DBC_CONFIG_ADDRESS env)"
     )
-    .requiredOption("--amount <number>", "Initial buy amount in SOL")
+    .requiredOption("--amount <number>", "Initial buy amount in NSO")
     .option("--creator <address>", "Pool creator address")
     .option("--buyer <address>", "Buyer address")
     .option("--receiver <address>", "Token receiver address")
@@ -124,7 +124,7 @@ async function handlePoolCreate(options: PoolCreateOptions): Promise<void> {
   printInfo(`Wallet: ${wallet.publicKey.toBase58()}`);
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl,
     commitment: "confirmed",
   });
@@ -203,7 +203,7 @@ async function handlePoolCreateWithBuy(
   printInfo(`Wallet: ${wallet.publicKey.toBase58()}`);
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl,
     commitment: "confirmed",
   });
@@ -237,7 +237,7 @@ async function handlePoolCreateWithBuy(
   );
 
   printInfo("Creating token pool with initial buy...");
-  printInfo(`Initial buy amount: ${amount} SOL`);
+  printInfo(`Initial buy amount: ${amount} NSO`);
 
   // Create pool with first buy
   const result = await createPoolWithFirstBuy(sdk, {
@@ -278,7 +278,7 @@ async function handlePoolCreateWithBuy(
     console.log(`\nPool Address: ${result.poolAddress}`);
     console.log(`Token Address: ${result.baseMint}`);
     console.log(`\nBuy Info:`);
-    console.log(`  Amount In: ${(parseInt(result.buyInfo.amountIn) / 1e9).toFixed(4)} SOL`);
+    console.log(`  Amount In: ${(parseInt(result.buyInfo.amountIn) / 1e9).toFixed(4)} NSO`);
     console.log(`  Minimum Out: ${result.buyInfo.minimumAmountOut} tokens (smallest unit)`);
     printTransactionResult(txResult, false);
 
@@ -306,7 +306,7 @@ async function handlePoolInfo(
   validatePublicKey(tokenAddress);
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl,
     commitment: "confirmed",
   });
@@ -337,7 +337,7 @@ async function handlePoolProgress(
   validatePublicKey(tokenAddress);
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl,
     commitment: "confirmed",
   });

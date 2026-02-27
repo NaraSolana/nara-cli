@@ -10,7 +10,7 @@
  * Run: bun examples/6-get-pool-info.ts
  */
 
-import { NaraDBC, getPoolInfo, getPoolProgress } from "../index";
+import { NaraSDK, getPoolInfo, getPoolProgress } from "../index";
 import { getRpcUrl } from "./utils";
 
 async function main() {
@@ -24,7 +24,7 @@ async function main() {
   }
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl: getRpcUrl(),
     commitment: "confirmed",
   });

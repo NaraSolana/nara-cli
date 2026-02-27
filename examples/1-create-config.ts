@@ -7,7 +7,7 @@
  * Run: bun examples/1-create-config.ts
  */
 
-import { NaraDBC, createConfig, Keypair } from "../index";
+import { NaraSDK, createConfig, Keypair } from "../index";
 import { getRpcUrl } from "./utils";
 import { sendAndConfirmTransaction } from "@solana/web3.js";
 import bs58 from "bs58";
@@ -27,7 +27,7 @@ async function main() {
   console.log("Wallet:", wallet.publicKey.toBase58());
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl: getRpcUrl(),
     commitment: "confirmed",
   });

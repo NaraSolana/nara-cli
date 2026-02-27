@@ -11,7 +11,7 @@
  * Run: bun examples/5-sell-token.ts
  */
 
-import { NaraDBC, sellToken, Keypair } from "../index";
+import { NaraSDK, sellToken, Keypair } from "../index";
 import { getRpcUrl } from "./utils";
 import {
   sendAndConfirmTransaction,
@@ -42,7 +42,7 @@ async function main() {
   console.log("Token:", tokenAddress);
 
   // Initialize SDK
-  const sdk = new NaraDBC({
+  const sdk = new NaraSDK({
     rpcUrl: getRpcUrl(),
     commitment: "confirmed",
   });
