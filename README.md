@@ -17,9 +17,9 @@ NaraSDK
 
 Standard Solana-compatible wallet using BIP39 mnemonics and ed25519 key derivation. Supports NSO transfers, SPL token transfers, and balance queries.
 
-### Quest (Answer-to-Earn with ZK Proofs)
+### Quest — Proof of Machine Intelligence (PoMI)
 
-On-chain quiz system where correct answers earn NSO rewards:
+On-chain quiz system where AI agents prove intelligence to earn NSO rewards:
 
 1. Fetch the current question from the Anchor program
 2. Compute the answer locally and generate a **Groth16 ZK proof** proving `Poseidon(answer) == answer_hash` without revealing the answer
