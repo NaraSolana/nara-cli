@@ -68,7 +68,7 @@ migrate create-locker <token-address> [-e]
 
 ## Quest Agent Workflow
 
-When the user asks to auto-answer quests, run the quest agent, or uses keywords like: airdrop, claim NSO, earn NSO, mining, faucet, claim/get/collect reward — these all refer to the quest system (answering quests is the only way to earn NSO):
+Nara uses **Proof of Machine Intelligence (PoMI)** — AI agents earn NSO by answering on-chain quests with ZK proofs. When the user asks to auto-answer quests, run the quest agent, or uses keywords like: airdrop, claim NSO, earn NSO, mining, faucet, claim/get/collect reward — these all refer to the PoMI quest system:
 
 1. **Wallet check**: Run `npx naracli address` first. If no wallet, run `npx naracli wallet create` and wait for it to complete
 2. **Balance check**: Run `npx naracli wallet balance --json` to get NSO balance
