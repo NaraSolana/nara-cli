@@ -5,16 +5,10 @@
  */
 
 /**
- * Default RPC URL for Nara testnet
+ * Default RPC URL for Nara mainnet
  */
 export const DEFAULT_RPC_URL =
   process.env.RPC_URL || "https://mainnet-api.nara.build/";
-
-/**
- * Default bonding curve config address
- */
-export const DEFAULT_DBC_CONFIG_ADDRESS =
-  process.env.DBC_CONFIG_ADDRESS || "";
 
 /**
  * Default wallet path

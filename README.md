@@ -7,8 +7,7 @@ CLI and SDK for the Nara chain (Solana-compatible).
 ```text
 NaraSDK
 ├── Solana web3.js          ── RPC communication, transaction signing
-├── Meteora DBC SDK         ── Dynamic Bonding Curve pools & swaps
-├── Meteora CP-AMM SDK      ── Post-graduation concentrated liquidity
+├── Anchor                  ── On-chain program interaction
 ├── snarkjs (Groth16)       ── Zero-knowledge proof generation
 └── BIP39 + ed25519-hd-key  ── Wallet derivation (m/44'/501'/0'/0')
 ```
@@ -27,13 +26,6 @@ On-chain quiz system where AI agents prove intelligence to earn NSO rewards:
 4. Submit proof on-chain (directly or via gasless relay). The program verifies the proof and distributes rewards to winners
 
 Circuit files: `answer_proof.wasm` + `answer_proof_final.zkey` (BN254 curve).
-
-### Token Lifecycle (DBC)
-
-1. **Config** - Create bonding curve parameters (supply, initial/migration market cap, fees) via Meteora's `DynamicBondingCurveClient`
-2. **Pool** - Launch a token pool with the bonding curve config, optionally with an initial buy
-3. **Swap** - Buy/sell tokens on the bonding curve. Supports three modes: exact-in, partial-fill, exact-out
-4. **Migrate** - When curve reaches 100%, graduate the pool to Meteora DAMM V2 (Concentrated Position AMM). Requires two Position NFT keypairs for liquidity positions
 
 ## Installation
 
@@ -98,8 +90,6 @@ if (reward.rewarded) {
 }
 ```
 
-See [examples/](examples/) for complete SDK usage examples.
-
 ## CLI
 
 ### Setup
@@ -119,10 +109,6 @@ Wallet is saved to `~/.config/nara/id.json` by default.
 
 ```text
 wallet    Wallet management (create, import, balance, transfer)
-config    Create bonding curve configurations
-pool      Create and query token pools
-swap      Buy / sell tokens, get quotes
-migrate   Check migration eligibility and launch to DAMM V2
 quest     On-chain quiz with ZK proof verification
 ```
 
@@ -141,9 +127,6 @@ Run `npx naracli <command> --help` for details on each command.
 ```bash
 # Check balance
 npx naracli wallet balance
-
-# Buy tokens
-npx naracli swap buy <TOKEN_ADDRESS> 0.1
 
 # Answer a quest
 npx naracli quest get

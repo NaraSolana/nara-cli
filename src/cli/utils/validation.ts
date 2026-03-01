@@ -67,46 +67,6 @@ export function validateNonNegativeNumber(
 }
 
 /**
- * Validate swap mode string
- * @param mode Mode string
- * @returns Validated mode string
- * @throws Error if invalid
- */
-export function validateSwapMode(mode: string): string {
-  const validModes = ["exact-in", "partial-fill", "exact-out"];
-  const normalized = mode.toLowerCase();
-
-  if (!validModes.includes(normalized)) {
-    throw new Error(
-      `Invalid swap mode: ${mode}. Must be one of: ${validModes.join(", ")}`
-    );
-  }
-
-  return normalized;
-}
-
-/**
- * Validate direction string
- * @param direction Direction string
- * @returns Validated direction string
- * @throws Error if invalid
- */
-export function validateDirection(direction: string): string {
-  const validDirections = ["buy", "sell"];
-  const normalized = direction.toLowerCase();
-
-  if (!validDirections.includes(normalized)) {
-    throw new Error(
-      `Invalid direction: ${direction}. Must be one of: ${validDirections.join(
-        ", "
-      )}`
-    );
-  }
-
-  return normalized;
-}
-
-/**
  * Validate required option
  * @param value Option value
  * @param name Option name

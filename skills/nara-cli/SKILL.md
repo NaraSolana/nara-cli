@@ -1,6 +1,6 @@
 ---
 name: nara-cli
-description: "Nara chain CLI and SDK agent. Use when the user mentions: Nara, NSO, Nara wallet, balance, transfer NSO, buy/sell tokens, swap, pool, bonding curve, quest, answer quest, migrate, or any blockchain transaction on the Nara chain. Also triggers for keywords: token launch, token pool, swap quote, airdrop, keypair, mnemonic, quest agent, auto-answer, claim NSO, earn NSO, mining, mine NSO, faucet, claim reward, get reward, collect reward."
+description: "Nara chain CLI and SDK agent. Use when the user mentions: Nara, NSO, Nara wallet, balance, transfer NSO, quest, answer quest, or any blockchain transaction on the Nara chain. Also triggers for keywords: airdrop, keypair, mnemonic, quest agent, auto-answer, claim NSO, earn NSO, mining, mine NSO, faucet, claim reward, get reward, collect reward."
 ---
 
 # Nara CLI
@@ -29,7 +29,7 @@ If this fails with "No wallet found", create one **before doing anything else**:
 npx naracli wallet create
 ```
 
-Do NOT run other commands (quest, swap, etc.) in parallel with wallet check — wait for wallet confirmation first. Wallet is saved to `~/.config/nara/id.json`.
+Do NOT run other commands (quest, etc.) in parallel with wallet check — wait for wallet confirmation first. Wallet is saved to `~/.config/nara/id.json`.
 
 ## Global Options
 
@@ -51,20 +51,9 @@ wallet transfer <to> <amount> [-e]                  # Transfer NSO
 wallet transfer-token <token> <to> <amount> [--decimals 6] [-e]  # Transfer tokens
 quest get                                           # Get current quest info
 quest answer <answer> [--relay [url]]               # Submit answer with ZK proof
-pool create -n <name> -s <symbol> -u <uri> --dbc-config <addr> [--creator <addr>] [-e]
-pool create-with-buy -n <name> -s <symbol> -u <uri> --dbc-config <addr> --amount <nso> [--creator <addr>] [--buyer <addr>] [--receiver <addr>] [--slippage 100] [-e]
-pool info <token-address>
-pool progress <token-address>
-swap buy <token-address> <amount> [--slippage 100] [--mode partial-fill] [-e]
-swap sell <token-address> <amount> [--decimals 6] [--slippage 100] [--mode partial-fill] [-e]
-swap quote <token-address> <amount> <buy|sell> [--decimals 6] [--slippage 100]
-config create [--fee-claimer <addr>] [--leftover-receiver <addr>] [--total-supply 1000000000] [--initial-mcap 30] [--migration-mcap 540] [-e]
-migrate check <token-address>
-migrate launch <token-address> [-e]
-migrate create-locker <token-address> [-e]
 ```
 
-`--relay` enables gasless quest submission. Swap modes: `exact-in`, `partial-fill` (default), `exact-out`.
+`--relay` enables gasless quest submission.
 
 ## Quest Agent Workflow
 

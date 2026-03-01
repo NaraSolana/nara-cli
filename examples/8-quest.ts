@@ -23,8 +23,7 @@ import {
   parseQuestReward,
   Keypair,
 } from "../index";
-import { getRpcUrl } from "./utils";
-import { Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Connection } from "@solana/web3.js";
 import bs58 from "bs58";
 
 async function main() {
@@ -37,7 +36,7 @@ async function main() {
     ? Keypair.fromSecretKey(new Uint8Array(JSON.parse(privateKey)))
     : Keypair.fromSecretKey(bs58.decode(privateKey));
 
-  const rpcUrl = getRpcUrl();
+  const rpcUrl = process.env.RPC_URL || "https://mainnet-api.nara.build/";
   const connection = new Connection(rpcUrl, "confirmed");
 
   console.log("Wallet:", wallet.publicKey.toBase58());
