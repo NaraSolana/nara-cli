@@ -42,17 +42,20 @@ Do NOT run other commands (quest, etc.) in parallel with wallet check — wait f
 ## Commands
 
 ```
-address                                             # Show wallet address (shortcut)
-wallet address                                      # Show wallet address
-wallet balance [address]                            # Check NSO balance
-wallet token-balance <token-address> [--owner <addr>]  # Check token balance
-wallet tx-status <signature>                        # Check transaction status
-wallet transfer <to> <amount> [-e]                  # Transfer NSO
-wallet transfer-token <token> <to> <amount> [--decimals 6] [-e]  # Transfer tokens
+address                                             # Show wallet address
+balance [address]                                   # Check NSO balance
+token-balance <token-address> [--owner <addr>]      # Check token balance
+tx-status <signature>                               # Check transaction status
+transfer <to> <amount> [-e]                         # Transfer NSO
+transfer-token <token> <to> <amount> [--decimals 6] [-e]  # Transfer tokens
+sign <base64-tx> [--send]                           # Sign a base64-encoded transaction
+wallet create                                       # Create new wallet
+wallet import [-m <mnemonic>] [-k <key>]            # Import wallet
 quest get                                           # Get current quest info
 quest answer <answer> [--relay [url]]               # Submit answer with ZK proof
 ```
 
+`-e` / `--export-tx` exports unsigned base64 transaction (can be signed later with `sign`).
 `--relay` enables gasless quest submission.
 
 ## Quest Agent Workflow
@@ -60,7 +63,7 @@ quest answer <answer> [--relay [url]]               # Submit answer with ZK proo
 Nara uses **Proof of Machine Intelligence (PoMI)** — AI agents earn NSO by answering on-chain quests with ZK proofs. When the user asks to auto-answer quests, run the quest agent, or uses keywords like: airdrop, claim NSO, earn NSO, mining, faucet, claim/get/collect reward — these all refer to the PoMI quest system:
 
 1. **Wallet check**: Run `npx naracli address` first. If no wallet, run `npx naracli wallet create` and wait for it to complete
-2. **Balance check**: Run `npx naracli wallet balance --json` to get NSO balance
+2. **Balance check**: Run `npx naracli balance --json` to get NSO balance
 3. **Fetch**: `npx naracli quest get --json`
 4. **Check**: If expired or no active quest, wait 15s and retry
 5. **Solve**: Analyze the question and compute the answer. See [references/quest-questions.md](references/quest-questions.md) for question types

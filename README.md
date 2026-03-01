@@ -108,11 +108,20 @@ Wallet is saved to `~/.config/nara/id.json` by default.
 ### Commands
 
 ```text
-wallet    Wallet management (create, import, balance, transfer)
-quest     On-chain quiz with ZK proof verification
+address                         Show wallet address
+balance [address]               Check NSO balance
+token-balance <token-address>   Check token balance
+tx-status <signature>           Check transaction status
+transfer <to> <amount>          Transfer NSO
+transfer-token <token> <to> <amount>  Transfer tokens
+sign <base64-tx> [--send]       Sign (and optionally send) a transaction
+wallet create                   Create a new wallet
+wallet import                   Import wallet from mnemonic or private key
+quest get                       Get current quest info
+quest answer <answer>           Submit answer with ZK proof
 ```
 
-Run `npx naracli <command> --help` for details on each command.
+Run `npx naracli <command> --help` for details.
 
 ### Global Options
 
@@ -126,7 +135,7 @@ Run `npx naracli <command> --help` for details on each command.
 
 ```bash
 # Check balance
-npx naracli wallet balance
+npx naracli balance
 
 # Answer a quest
 npx naracli quest get

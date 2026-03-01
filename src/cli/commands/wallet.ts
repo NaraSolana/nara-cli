@@ -85,108 +85,6 @@ export function registerWalletCommands(program: Command): void {
       }
     });
 
-  // wallet address
-  wallet
-    .command("address")
-    .description("Show wallet address")
-    .action(async (options: GlobalOptions) => {
-      try {
-        await handleWalletAddress(options);
-      } catch (error: any) {
-        printError(error.message);
-        process.exit(1);
-      }
-    });
-
-  // wallet balance
-  wallet
-    .command("balance")
-    .description("Check NSO balance")
-    .argument("[address]", "Wallet address (optional, defaults to current wallet)")
-    .action(async (address: string | undefined, options: WalletBalanceOptions) => {
-      try {
-        await handleWalletBalance(address, options);
-      } catch (error: any) {
-        printError(error.message);
-        process.exit(1);
-      }
-    });
-
-  // wallet token-balance
-  wallet
-    .command("token-balance <token-address>")
-    .description("Check token balance")
-    .option("--owner <address>", "Owner address (optional, defaults to current wallet)")
-    .action(
-      async (
-        tokenAddress: string,
-        options: Omit<TokenBalanceOptions, "tokenAddress">
-      ) => {
-        try {
-          await handleTokenBalance(tokenAddress, options);
-        } catch (error: any) {
-          printError(error.message);
-          process.exit(1);
-        }
-      }
-    );
-
-  // wallet tx-status
-  wallet
-    .command("tx-status <signature>")
-    .description("Check transaction status")
-    .action(
-      async (signature: string, options: Omit<TxStatusOptions, "signature">) => {
-        try {
-          await handleTxStatus(signature, options);
-        } catch (error: any) {
-          printError(error.message);
-          process.exit(1);
-        }
-      }
-    );
-
-  // wallet transfer
-  wallet
-    .command("transfer <to> <amount>")
-    .description("Transfer NSO to another wallet")
-    .option("-e, --export-tx", "Export unsigned transaction", false)
-    .action(
-      async (
-        to: string,
-        amount: string,
-        options: Omit<TransferSolOptions, "to" | "amount">
-      ) => {
-        try {
-          await handleTransferSol(to, amount, options);
-        } catch (error: any) {
-          printError(error.message);
-          process.exit(1);
-        }
-      }
-    );
-
-  // wallet transfer-token
-  wallet
-    .command("transfer-token <token-address> <to> <amount>")
-    .description("Transfer tokens to another wallet")
-    .option("--decimals <number>", "Token decimals", "6")
-    .option("-e, --export-tx", "Export unsigned transaction", false)
-    .action(
-      async (
-        tokenAddress: string,
-        to: string,
-        amount: string,
-        options: Omit<TransferTokenOptions, "tokenAddress" | "to" | "amount">
-      ) => {
-        try {
-          await handleTransferToken(tokenAddress, to, amount, options);
-        } catch (error: any) {
-          printError(error.message);
-          process.exit(1);
-        }
-      }
-    );
 }
 
 /**
@@ -194,7 +92,7 @@ export function registerWalletCommands(program: Command): void {
  * @param address Wallet address
  * @param options Command options
  */
-async function handleWalletBalance(
+export async function handleWalletBalance(
   address: string | undefined,
   options: WalletBalanceOptions
 ): Promise<void> {
@@ -245,7 +143,7 @@ async function handleWalletBalance(
  * @param tokenAddress Token address
  * @param options Command options
  */
-async function handleTokenBalance(
+export async function handleTokenBalance(
   tokenAddress: string,
   options: Omit<TokenBalanceOptions, "tokenAddress">
 ): Promise<void> {
@@ -329,7 +227,7 @@ async function handleTokenBalance(
  * @param signature Transaction signature
  * @param options Command options
  */
-async function handleTxStatus(
+export async function handleTxStatus(
   signature: string,
   options: Omit<TxStatusOptions, "signature">
 ): Promise<void> {
@@ -416,7 +314,7 @@ async function handleTxStatus(
  * @param amount Amount in SOL
  * @param options Command options
  */
-async function handleTransferSol(
+export async function handleTransferSol(
   to: string,
   amount: string,
   options: Omit<TransferSolOptions, "to" | "amount">
@@ -494,7 +392,7 @@ async function handleTransferSol(
  * @param amount Amount in tokens
  * @param options Command options
  */
-async function handleTransferToken(
+export async function handleTransferToken(
   tokenAddress: string,
   to: string,
   amount: string,
@@ -709,7 +607,7 @@ async function handleWalletImport(options: {
  * Handle wallet address command
  * @param options Command options
  */
-async function handleWalletAddress(options: GlobalOptions): Promise<void> {
+export async function handleWalletAddress(options: GlobalOptions): Promise<void> {
   const wallet = await loadWallet(options.wallet);
 
   if (options.json) {
